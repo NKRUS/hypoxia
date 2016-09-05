@@ -10,7 +10,7 @@ public class Main extends Application{
     public void start(Stage primaryStage) throws Exception {
         Parent root = new Pane();
         primaryStage.setTitle("Hello World");
-        primaryStage.setScene(new Scene(root, 300, 275));
+        primaryStage.setScene(new Scene(root));
         Stage stage = new HypoxiaStage();
         stage.show();
     }

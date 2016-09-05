@@ -9,9 +9,8 @@ import java.io.IOException;
 
 public class HypoxiaStage extends Stage {
     public HypoxiaStage() throws IOException {
-        Parent root = new FXMLLoader(getClass().getResource("ru/kit/hypoxia/fxml/hypoxia.fxml")).load();
-        this.setScene(new Scene(root, 720, 580));
-
-
+        Parent root = new FXMLLoader(getClass().getResource("/ru/kit/hypoxia/fxml/hypoxia.fxml")).load();
+        this.setScene(new Scene(root));
+//        this.show();
     }
 }
