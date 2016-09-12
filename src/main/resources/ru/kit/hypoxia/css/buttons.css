@@ -1,0 +1,15 @@
+#ok_button {
+    -fx-background-color: #36804d;
+    -fx-text-fill: white;
+}
+#ok_button:hover {
+    -fx-background-color: #39ad77;
+}
+
+#cancel_button {
+    -fx-background-color: #e64c3b;
+    -fx-text-fill: white;
+}
+#cancel_button:hover {
+    -fx-background-color: #ff7a58;
+}

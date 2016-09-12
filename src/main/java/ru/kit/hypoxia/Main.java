@@ -13,6 +13,8 @@ public class Main extends Application{
         primaryStage.setScene(new Scene(root));
         Stage stage = new HypoxiaStage();
         stage.show();
+
+
     }
 
     public static void main(String[] args) {
