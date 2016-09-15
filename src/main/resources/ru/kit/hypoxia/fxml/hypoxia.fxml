@@ -130,7 +130,7 @@
                         </Label>
                      </children>
                   </Pane>
-                  <LineChart fx:id="chart" legendVisible="false" GridPane.rowIndex="1">
+                  <LineChart fx:id="chart" centerShape="false" legendVisible="false" scaleShape="false" verticalGridLinesVisible="false" GridPane.rowIndex="1">
                     <xAxis>
                       <NumberAxis side="BOTTOM" />
                     </xAxis>
