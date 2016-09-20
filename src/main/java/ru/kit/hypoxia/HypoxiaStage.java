@@ -20,4 +20,9 @@ public class HypoxiaStage extends Stage {
 
 //        this.show();
     }
+
+    @Override
+    public void close() {
+        super.close();
+    }
 }
