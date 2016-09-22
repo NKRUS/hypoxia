@@ -25,7 +25,7 @@ public class PulseOxiEquipment {
     private int weight;
     private int height;
 
-    private int numberOfIteration = 7302;
+    private static int numberOfIteration = 11600;
 
     private PulseOxi oxiLib = PulseOxi.INSTANCE;
 

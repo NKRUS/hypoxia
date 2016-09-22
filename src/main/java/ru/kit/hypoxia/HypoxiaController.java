@@ -2,7 +2,6 @@ package ru.kit.hypoxia;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -19,15 +18,8 @@ import ru.kit.hypoxia.dto.ReadyStatus;
 
 import java.io.*;
 import java.net.Socket;
-import java.net.UnknownHostException;
-import java.time.Duration;
-import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class HypoxiaController {
 
@@ -35,16 +27,18 @@ public class HypoxiaController {
 //    private Queue<Integer> dataHR;
 
     private final static int port = 8085;
+    private final static int firstTime = 15;
+    private int currentStage = 0;
 
     private static final int NUMBER_OF_SKIP = 5;
-    private static final int MAX_DATA_POINTS = 7302 / NUMBER_OF_SKIP;
+    private static final int MAX_DATA_POINTS = 11600 / NUMBER_OF_SKIP;
     private static final int MAX_DATA_VALUES = 150;
     //    private int xSeriesData = 0;
     private XYChart.Series<Number, Number> seriesHR;
     private XYChart.Series<Number, Number> seriesSPO2;
 
 
-    private PulseOxiEquipment pulseOxiEquipment;
+//    private PulseOxiEquipment pulseOxiEquipment;
 
     private boolean isTesting = false;
 //    private ConcurrentLinkedQueue<Number> dataQHR = new ConcurrentLinkedQueue<>();
@@ -59,11 +53,18 @@ public class HypoxiaController {
 //        this.dataHR = dataHR;
 //    }
 
+    private int sumOfSPO2Rest = 0;
+    private int sumOfSPO2Recovery = 0;
+
+    private int countOfSPO2Rest = 0;
+    private int countOfSPO2Recovery = 0;
+
+
     @FXML
     private LineChart<Number, Number> chart;
 
     @FXML
-    private Label textSPO2, textHR, textNotification, textTimer;
+    private Label textSPO2, textHR, textNotification, textMaskaOff, textMaskaOn, textTimer;
 
     @FXML
     private Button buttonStart;
@@ -97,7 +98,6 @@ public class HypoxiaController {
         startChecking();
     }
 
-
     private void prepareChart() {
         chart.getData().clear();
 
@@ -113,9 +113,9 @@ public class HypoxiaController {
         chart.getData().addAll(seriesHR, seriesSPO2);
     }
 
-    Timer timer;
+    private Timer timer;
 
-    TimerTask task;
+    private TimerTask task;
 
     @FXML
     private void startTest(ActionEvent actionEvent) {
@@ -149,6 +149,45 @@ public class HypoxiaController {
                         if (++counterInspections % NUMBER_OF_SKIP == 0) {
                             seriesHR.getData().add(new XYChart.Data(counterPoints, inspections.getPulse()));
                             seriesSPO2.getData().add(new XYChart.Data(counterPoints++, inspections.getSpo2()));
+
+                            if (seconds == 1) {
+                                currentStage = 1;
+                            }
+
+                            if (seconds <= firstTime) {
+                                sumOfSPO2Rest += inspections.getSpo2();
+                                countOfSPO2Rest += 1;
+                            }
+
+                            if (seconds == firstTime + 1) {
+                                currentStage = 2;
+                                System.err.println(sumOfSPO2Rest / countOfSPO2Rest);
+
+
+                                textNotification.setVisible(false);
+                                textMaskaOn.setVisible(true);
+                                textMaskaOff.setVisible(false);
+                            }
+
+                            if (currentStage == 2 && (seconds == 315 || inspections.getSpo2() <= 80)) {
+                                currentStage = 3;
+
+                                textNotification.setVisible(false);
+                                textMaskaOn.setVisible(true);
+                                textMaskaOff.setVisible(false);
+                            }
+
+
+                            if(currentStage == 3){
+                                sumOfSPO2Recovery += inspections.getSpo2();
+                                countOfSPO2Recovery += 1;
+                            }
+
+                            if(currentStage == 3 && inspections.getSpo2() >= 95){
+                                currentStage = 4;
+
+                                System.err.println(sumOfSPO2Recovery / countOfSPO2Recovery);
+                            }
 
                             Platform.runLater(() -> {
                                 textHR.setText("" + inspections.getPulse());
@@ -191,6 +230,34 @@ public class HypoxiaController {
         updateSeries.start();
     }
 
+    private void stopTest() {
+        Thread stopTest = new Thread(() -> {
+            try (Socket socket = new Socket("localhost", port)) {
+                BufferedWriter output = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+
+                StopTest stopTestCommand = new StopTest();
+                output.write(serialize(stopTestCommand));
+                output.newLine();
+                output.flush();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+
+        stopTest.setDaemon(true);
+        stopTest.start();
+    }
+
+    @FXML
+    private void cancel(ActionEvent actionEvent) {
+    }
+
+    @FXML
+    private void ok(ActionEvent actionEvent) {
+    }
+
+
     private void beforeTest() {
         timer = new Timer();
 
@@ -205,6 +272,11 @@ public class HypoxiaController {
         textNotification.setVisible(false);
         timer.schedule(task, 0, 1000);
         prepareChart();
+
+        sumOfSPO2Rest = 0;
+        sumOfSPO2Recovery = 0;
+        countOfSPO2Rest = 0;
+        countOfSPO2Recovery = 0;
     }
 
     private void afterTest() {
@@ -219,9 +291,14 @@ public class HypoxiaController {
     private void updateTimer() {
         Platform.runLater(() -> {
             seconds++;
-            int sec =  seconds % 60;
+            int sec = seconds % 60;
             textTimer.setText("0" + (seconds / 60) + ":" + ((sec < 10) ? "0" + sec : "" + sec));
+
+
+
+
         });
+
     }
 
     private void startChecking() {
@@ -275,6 +352,8 @@ public class HypoxiaController {
     private void disableAll() {
         buttonStart.setDisable(true);
         textNotification.setVisible(true);
+        textMaskaOn.setVisible(false);
+        textMaskaOff.setVisible(false);
     }
 
     private void enableAll() {

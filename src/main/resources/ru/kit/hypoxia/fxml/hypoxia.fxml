@@ -51,10 +51,29 @@
                   <Font name="Calibri" size="24.0" />
                </font>
             </Label>
-            <Label fx:id="textNotification" prefHeight="28.0" prefWidth="448.0" text="Проверьте подключение пульсоксиметра!" textFill="WHITE" GridPane.columnIndex="2" GridPane.halignment="RIGHT">
+            <Label fx:id="textNotification" prefHeight="28.0" text="Проверьте подключение пульсоксиметра!" textFill="WHITE" GridPane.columnIndex="2" GridPane.halignment="RIGHT">
                <font>
                   <Font name="Calibri" size="24.0" />
                </font>
+               <GridPane.margin>
+                  <Insets right="20.0" />
+               </GridPane.margin>
+            </Label>
+            <Label fx:id="textMaskaOn" prefHeight="28.0" text="Наденьте гипоксическую маску" textFill="WHITE" GridPane.columnIndex="2" GridPane.halignment="RIGHT">
+               <font>
+                  <Font name="Calibri" size="24.0" />
+               </font>
+               <GridPane.margin>
+                  <Insets right="20.0" />
+               </GridPane.margin>
+            </Label>
+            <Label fx:id="textMaskaOff" prefHeight="28.0" text="Снимите гипоксическую маску" textFill="WHITE" GridPane.columnIndex="2" GridPane.halignment="RIGHT">
+               <font>
+                  <Font name="Calibri" size="24.0" />
+               </font>
+               <GridPane.margin>
+                  <Insets right="20.0" />
+               </GridPane.margin>
             </Label>
          </children>
       </GridPane>

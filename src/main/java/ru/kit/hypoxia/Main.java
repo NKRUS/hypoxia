@@ -9,6 +9,9 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 public class Main extends Application{
+
+    public static final boolean IS_DEBUG = true;
+
     public void start(Stage primaryStage) throws Exception {
 //        primaryStage.setTitle("Hello World");
 //        primaryStage.show();
