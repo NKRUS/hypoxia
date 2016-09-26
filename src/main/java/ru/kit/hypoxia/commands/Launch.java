@@ -7,17 +7,30 @@ public class Launch extends Command{
     private int height;
     private int systBP;
     private int diastBP;
+    private int seconds;
+
 
     public Launch() {
     }
 
-    public Launch(int age, boolean isMan, int weight, int height, int systBP, int diastBP) {
+
+    public int getSeconds() {
+        return seconds;
+    }
+
+    public void setSeconds(int seconds) {
+        this.seconds = seconds;
+    }
+
+
+    public Launch(int age, boolean isMan, int weight, int height, int systBP, int diastBP, int seconds) {
         this.age = age;
         this.isMan = isMan;
         this.weight = weight;
         this.height = height;
         this.systBP = systBP;
         this.diastBP = diastBP;
+        this.seconds = seconds;
     }
 
     public int getAge() {
