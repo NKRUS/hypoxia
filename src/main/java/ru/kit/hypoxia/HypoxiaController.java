@@ -8,6 +8,7 @@ import javafx.beans.NamedArg;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.chart.Axis;
 import javafx.scene.chart.LineChart;
@@ -17,6 +18,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 
+import javafx.scene.paint.Color;
+import javafx.stage.WindowEvent;
 import ru.kit.hypoxia.commands.*;
 import ru.kit.hypoxia.control.LineChartWithMarker;
 import ru.kit.hypoxia.dto.Data;
@@ -26,31 +29,33 @@ import ru.kit.hypoxia.dto.ReadyStatus;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.*;
 
 public class HypoxiaController {
 
 
     private final static int port = 8085;
     private final static int firstTime = 15;
-    private final static int secondTime = 315;
+    private final static int secondTime = 600;//315;
     private int currentStage = 0;
     private int timeOfFall = 0;
     private int timeOfRecovery = 0;
     private int timeOfStartOfRecovery = 0;
 
 
-    private static final int secondsForTest = 315;
+    private Stack<XYChart.Data<Number, Number>> markers = new Stack<>();
+
+    private static final int secondsForTest = 600;
 
     private static final int NUMBER_OF_SKIP = 5;
-    private static final int MAX_DATA_POINTS = 7302 / 123 * secondsForTest / NUMBER_OF_SKIP;
+    private static final int MAX_DATA_POINTS = 3000;//;7302 / 123 * secondsForTest / NUMBER_OF_SKIP;
     private static final int MAX_DATA_VALUES = 150;
 
 
     private XYChart.Series<Number, Number> seriesHR;
     private XYChart.Series<Number, Number> seriesSPO2;
-
 
 
     private boolean isTesting = false;
@@ -77,17 +82,20 @@ public class HypoxiaController {
     private LineChartWithMarker<Number, Number> chart;
 
 
-
     @FXML
     private Label textSPO2, textHR, textNotification, textMaskaOff,
             textMaskaOn, textTimer, textRecoveryTime, textFallTime, textHypI, textSPO2Rest;
 
     @FXML
-    private Button buttonStart;
+    private Button buttonStart, ok_button, cancel_button;
+    private HypoxiaStage stage;
 
     @FXML
     private void initialize() {
         chart = new LineChartWithMarker<>(new NumberAxis(), new NumberAxis());
+
+
+        chart.getStylesheets().add("ru/kit/hypoxia/css/linechart.css");
 
         forChart.getChildren().add(chart);
 
@@ -106,8 +114,7 @@ public class HypoxiaController {
         yAxis.setUpperBound(MAX_DATA_VALUES);
         yAxis.setAutoRanging(false);
         yAxis.setTickUnit(10);
-
-
+        yAxis.setTickLabelFill(Color.WHITE);
 
 
         chart.setVerticalGridLinesVisible(false);
@@ -120,6 +127,11 @@ public class HypoxiaController {
 
         disableAll();
         startChecking();
+
+
+//        XYChart.Data<Number, Number> verticalMarker = new XYChart.Data<>(50, 0);
+//        markers.push(verticalMarker);
+//        chart.addVerticalValueMarker(verticalMarker);
     }
 
     private void prepareChart() {
@@ -166,7 +178,9 @@ public class HypoxiaController {
 
 
                 int counterPoints = 0, counterInspections = 0;
-                while (line == null || data instanceof Inspections) {
+                //while (line == null || data instanceof Inspections) {
+                while (data instanceof Inspections) {
+                    System.err.println(line);
                     if (line != null) {
                         Inspections inspections = (Inspections) data;
 
@@ -174,6 +188,10 @@ public class HypoxiaController {
                             seriesHR.getData().add(new XYChart.Data(counterPoints, inspections.getPulse()));
                             seriesSPO2.getData().add(new XYChart.Data(counterPoints++, inspections.getSpo2()));
 
+                            double upperBound = ((NumberAxis) chart.getXAxis()).getUpperBound();
+                            if (counterPoints > 0.8 * upperBound) {
+                                ((NumberAxis) chart.getXAxis()).setUpperBound(upperBound * 1.33);
+                            }
                             if (seconds == 1) {
                                 currentStage = 1;
                             }
@@ -191,9 +209,9 @@ public class HypoxiaController {
                                     textSPO2Rest.setText("" + sumOfSPO2Rest / countOfSPO2Rest);
 
                                     XYChart.Data<Number, Number> verticalMarker = new XYChart.Data<>(xValue, 0);
+                                    markers.push(verticalMarker);
                                     chart.addVerticalValueMarker(verticalMarker);
                                 });
-
 
 
                                 textNotification.setVisible(false);
@@ -205,11 +223,18 @@ public class HypoxiaController {
                                 currentStage = 3;
 
                                 timeOfFall = seconds - firstTime;
-                                //System.err.println("Время падения: " + timeOfFall);
+                                System.err.println("Время падения: " + timeOfFall);
                                 timeOfStartOfRecovery = seconds;
 
+
+                                final int xValue = counterPoints - 1;
                                 Platform.runLater(() -> {
                                     textFallTime.setText("" + timeOfFall);
+
+
+                                    XYChart.Data<Number, Number> verticalMarker = new XYChart.Data<>(xValue, 0);
+                                    markers.push(verticalMarker);
+                                    chart.addVerticalValueMarker(verticalMarker);
                                 });
 
                                 textNotification.setVisible(false);
@@ -232,7 +257,11 @@ public class HypoxiaController {
 
                                 Platform.runLater(() -> {
                                     textRecoveryTime.setText("" + timeOfRecovery);
-                                    textHypI.setText("" + (Math.round(timeOfFall/timeOfRecovery * 100)) + "%");
+
+                                    DecimalFormatSymbols otherSymbols = new DecimalFormatSymbols();
+                                    otherSymbols.setDecimalSeparator('.');
+                                    textHypI.setText(new DecimalFormat("#.##", otherSymbols).format(timeOfFall * 1.0 / timeOfRecovery));
+                                    ok_button.setDisable(false);
                                 });
 
                                 stopTest();
@@ -246,8 +275,6 @@ public class HypoxiaController {
 
                         }
 
-
-                        //System.err.println(inspections);
 
                         try {
                             Thread.sleep(10);
@@ -301,10 +328,12 @@ public class HypoxiaController {
 
     @FXML
     private void cancel(ActionEvent actionEvent) {
+        stage.close();
     }
 
     @FXML
     private void ok(ActionEvent actionEvent) {
+        stage.close();
     }
 
 
@@ -313,23 +342,34 @@ public class HypoxiaController {
 
         task = new TimerTask() {
             public void run() {
-                updateTimer();
+
+                System.err.println("IN timer");
+                while (isTesting)
+                    updateTimer();
             }
 
         };
 
+
         disableAll();
         textNotification.setVisible(false);
+
         timer.schedule(task, 0, 1000);
         prepareChart();
 
         sumOfSPO2Rest = 0;
         countOfSPO2Rest = 0;
+
+        ok_button.setDisable(true);
+        while (!markers.isEmpty()) {
+            chart.removeVerticalValueMarker(markers.pop());
+        }
     }
 
-    private void afterTest() {
+    public void afterTest() {
         isTesting = false;
         seconds = 0;
+        System.err.println("After test");
         timer.cancel();
         timer.purge();
     }
@@ -340,6 +380,7 @@ public class HypoxiaController {
         Platform.runLater(() -> {
             seconds++;
             int sec = seconds % 60;
+            //System.err.println(seconds);
             textTimer.setText("0" + (seconds / 60) + ":" + ((sec < 10) ? "0" + sec : "" + sec));
         });
 
@@ -372,8 +413,18 @@ public class HypoxiaController {
 
                     if (isReady) {
                         enableAll();
+                        Inspections inspections = (Inspections) deserializeData(br.readLine());
+                        Platform.runLater(() -> {
+                            textHR.setText("" + inspections.getPulse());
+                            textSPO2.setText("" + inspections.getSpo2());
+                        });
+
                     } else {
                         disableAll();
+                        Platform.runLater(() -> {
+                            textHR.setText("0");
+                            textSPO2.setText("0");
+                        });
                     }
 
                     try {
@@ -422,5 +473,14 @@ public class HypoxiaController {
     }
 
 
+    public void setStage(HypoxiaStage stage) {
+        this.stage = stage;
 
+        stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+            public void handle(WindowEvent we) {
+                //afterTest();
+            }
+        });
+
+    }
 }

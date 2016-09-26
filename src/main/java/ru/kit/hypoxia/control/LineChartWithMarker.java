@@ -10,6 +10,7 @@ import javafx.scene.chart.Axis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ValueAxis;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 
 import java.util.Objects;
@@ -37,6 +38,8 @@ public class LineChartWithMarker<X, Y> extends LineChart<X, Y> {
         Objects.requireNonNull(marker, "the marker must not be null");
         if (verticalMarkers.contains(marker)) return;
         Line line = new Line();
+        line.setStroke(Color.RED);
+
         marker.setNode(line);
         getPlotChildren().add(line);
         verticalMarkers.add(marker);

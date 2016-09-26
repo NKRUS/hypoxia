@@ -1,0 +1,11 @@
+.chart {
+    -fx-background-color: #4b5962;
+}
+
+.chart-plot-background {
+    -fx-background-color: transparent;
+}
+
+.chart-horizontal-grid-lines {
+    -fx-stroke: #5d6a72;
+}
