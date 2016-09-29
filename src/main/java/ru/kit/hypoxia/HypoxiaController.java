@@ -33,7 +33,7 @@ public class HypoxiaController {
 
     final static int port = 8085;
     private final static int firstTime = 15;
-    private final static int secondTime = 30;//315;
+    private final static int secondTime = 315;//315;
     private int currentStage = 0;
     private int timeOfFall = 0;
     private int timeOfRecovery = 0;
