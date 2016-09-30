@@ -9,15 +9,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-public class HypoxiaStage extends Stage {
+public class Hypoxia extends Stage {
     private static final int windowWidth = 950;
     private static final int windowHeight = 550;
     private HypoxiaController controller;
     private static final String SERVICE_NAME = "OxiService";
 
 
-    public HypoxiaStage() throws IOException {
-
+    public Hypoxia(int age, boolean isMale, boolean isFemale, int height, int width, int activityLevel, int systBP, int diastBP, String path) throws IOException {
 
         execService("stop");
 
@@ -27,7 +26,17 @@ public class HypoxiaStage extends Stage {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/ru/kit/hypoxia/fxml/hypoxia.fxml"));
         Parent root = loader.load();
 
-        HypoxiaController controller = (HypoxiaController)loader.getController();
+        HypoxiaController controller = loader.getController();
+
+        controller.setAge(age);
+        controller.setMan(isMale);
+        controller.setHeight(height);
+        controller.setWeight(width);
+        controller.setActivityLevel(activityLevel);
+        controller.setSystBP(systBP);
+        controller.setDiastBP(diastBP);
+        controller.setPath(path);
+
         controller.setStage(this);
 
 

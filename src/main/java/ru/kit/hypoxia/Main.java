@@ -1,9 +1,6 @@
 package ru.kit.hypoxia;
 
 import javafx.application.Application;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -17,7 +14,7 @@ public class Main extends Application{
 //        primaryStage.show();
 
 
-        Stage stage = new HypoxiaStage();
+        Stage stage = new Hypoxia(20, true, false, 170, 70, 4, 120, 80, "");
         stage.show();
 //        stage.close();
 //

@@ -5,6 +5,7 @@ public class Launch extends Command{
     private boolean isMan;
     private int weight;
     private int height;
+    private int activityLevel;
     private int systBP;
     private int diastBP;
     private int seconds;
@@ -23,14 +24,16 @@ public class Launch extends Command{
     }
 
 
-    public Launch(int age, boolean isMan, int weight, int height, int systBP, int diastBP, int seconds) {
+    public Launch(int age, boolean isMan, int weight, int height, int activityLevel, int systBP, int diastBP, int seconds) {
         this.age = age;
         this.isMan = isMan;
         this.weight = weight;
         this.height = height;
+        this.activityLevel = activityLevel;
         this.systBP = systBP;
         this.diastBP = diastBP;
         this.seconds = seconds;
+        //TODO: Передать активность
     }
 
     public int getAge() {
@@ -79,5 +82,13 @@ public class Launch extends Command{
 
     public void setSystBP(int systBP) {
         this.systBP = systBP;
+    }
+
+    public int getActivityLevel() {
+        return activityLevel;
+    }
+
+    public void setActivityLevel(int activityLevel) {
+        this.activityLevel = activityLevel;
     }
 }

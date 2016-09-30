@@ -105,7 +105,7 @@
                         <Insets right="15.0" top="17.0" />
                     </GridPane.margin>
                 </Button>
-                <Button fx:id="ok_button" disable="true" mnemonicParsing="false" onAction="#exit" text="ОК" GridPane.columnIndex="2" GridPane.halignment="RIGHT">
+                <Button fx:id="ok_button" disable="true" mnemonicParsing="false" onAction="#ok" text="ОК" GridPane.columnIndex="2" GridPane.halignment="RIGHT">
                     <font>
                         <Font name="Calibri" size="21.0" />
                     </font>

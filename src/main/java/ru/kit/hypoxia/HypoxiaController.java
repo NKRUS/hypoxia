@@ -3,7 +3,6 @@ package ru.kit.hypoxia;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
@@ -12,7 +11,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 
 import javafx.scene.paint.Color;
-import javafx.stage.WindowEvent;
+import org.json.JSONObject;
 import ru.kit.hypoxia.commands.*;
 import ru.kit.hypoxia.control.LineChartWithMarker;
 import ru.kit.hypoxia.dto.Data;
@@ -30,6 +29,15 @@ import static ru.kit.hypoxia.Util.deserializeData;
 import static ru.kit.hypoxia.Util.serialize;
 
 public class HypoxiaController {
+
+    private int age;
+    private boolean isMan;
+    private int weight;
+    private int height;
+    private int activityLevel;
+    private int systBP;
+    private int diastBP;
+    private String path;
 
     final static int port = 8085;
     private final static int firstTime = 15;
@@ -83,7 +91,7 @@ public class HypoxiaController {
 
     @FXML
     private Button buttonStart, ok_button, cancel_button;
-    private HypoxiaStage stage;
+    private Hypoxia stage;
 
     @FXML
     private void initialize() {
@@ -340,6 +348,7 @@ public class HypoxiaController {
 
     @FXML
     private void ok(ActionEvent actionEvent) {
+         writeJSON();
         stage.close();
     }
 
@@ -410,11 +419,112 @@ public class HypoxiaController {
     }
 
 
-    public void setStage(HypoxiaStage stage) {
+    public void setStage(Hypoxia stage) {
         this.stage = stage;
 
 
 
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public boolean isMan() {
+        return isMan;
+    }
+
+    public void setMan(boolean man) {
+        this.isMan = isMan;
+    }
+
+    public int getWeight() {
+        return weight;
+    }
+
+    public void setWeight(int weight) {
+        this.weight = weight;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
+    }
+
+    public int getDiastBP() {
+        return diastBP;
+    }
+
+    public void setDiastBP(int diastBP) {
+        this.diastBP = diastBP;
+    }
+
+    public int getSystBP() {
+        return systBP;
+    }
+
+    public void setSystBP(int systBP) {
+        this.systBP = systBP;
+    }
+
+    public int getActivityLevel() {
+        return activityLevel;
+    }
+
+    public void setActivityLevel(int activityLevel) {
+        this.activityLevel = activityLevel;
+    }
+
+    private JSONObject createJSON() {
+        //TODO: передать правильные значения в файл
+        JSONObject objLeft = new JSONObject();
+        objLeft.put("HypI", textHypI.getText());
+        JSONObject obj = new JSONObject();
+        obj.put("left", objLeft);
+        return obj;
+    }
+
+    private void writeJSON() {
+        try {
+            BufferedWriter e = new BufferedWriter(new FileWriter(new File(path.concat("hypo_output_file.json"))));
+            Throwable var2 = null;
+
+            try {
+                e.write(this.createJSON().toString());
+            } catch (Throwable var12) {
+                var2 = var12;
+                throw var12;
+            } finally {
+                if(var2 != null) {
+                    try {
+                        e.close();
+                    } catch (Throwable var11) {
+                        var2.addSuppressed(var11);
+                    }
+                } else {
+                    e.close();
+                }
+
+            }
+        } catch (IOException var14) {
+            var14.printStackTrace();
+        }
+
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public String getPath() {
+        return path;
     }
 }
 
@@ -432,7 +542,9 @@ class CheckReadyThread extends Thread {
             BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             BufferedWriter output = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 
-            Command command = new Launch(20, true, 70, 170, 120, 80, HypoxiaController.secondsForTest);
+            Command command = new Launch(controller.getAge(), controller.isMan(),
+                    controller.getWeight(), controller.getHeight(), controller.getActivityLevel(),
+                    controller.getSystBP(), controller.getDiastBP(), HypoxiaController.secondsForTest);
             output.write(serialize(command));
             output.newLine();
             output.flush();
@@ -477,6 +589,9 @@ class CheckReadyThread extends Thread {
             e.printStackTrace();
         }
     }
+
+
+
 }
 
 class UpdateTimerThread extends Thread {
