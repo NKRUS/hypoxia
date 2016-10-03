@@ -6,7 +6,7 @@
 
     <groupId>ru.kit</groupId>
     <artifactId>hypoxia</artifactId>
-    <version>20160930</version>
+    <version>20161003</version>
     <build>
         <plugins>
             <plugin>

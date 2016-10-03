@@ -152,7 +152,7 @@ public class HypoxiaController {
         chart.getData().addAll(seriesHR, seriesSPO2);
     }
 
-    private Timer timer;
+   //private Timer timer;
 
     @FXML
     private void exit(ActionEvent actionEvent) {
@@ -348,7 +348,7 @@ public class HypoxiaController {
 
     @FXML
     private void ok(ActionEvent actionEvent) {
-         writeJSON();
+        writeJSON();
         stage.close();
     }
 
@@ -483,11 +483,8 @@ public class HypoxiaController {
     }
 
     private JSONObject createJSON() {
-        //TODO: передать правильные значения в файл
-        JSONObject objLeft = new JSONObject();
-        objLeft.put("HypI", textHypI.getText());
         JSONObject obj = new JSONObject();
-        obj.put("left", objLeft);
+        obj.put("HypI", textHypI.getText());
         return obj;
     }
 
