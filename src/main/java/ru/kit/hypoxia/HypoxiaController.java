@@ -377,6 +377,13 @@ public class HypoxiaController {
         }
 
 
+        textHR.setText("---");
+        textSPO2Rest.setText("---");
+        textFallTime.setText("---");
+        textRecoveryTime.setText("---");
+        textTimer.setText("00:00");
+
+
     }
 
     void afterTest() {
@@ -484,7 +491,7 @@ public class HypoxiaController {
 
     private JSONObject createJSON() {
         JSONObject obj = new JSONObject();
-        obj.put("HypI", textHypI.getText());
+        obj.put("HypI", textHypI.getText().equals("∞") ? "0" : textHypI.getText());
         return obj;
     }
 
