@@ -58,7 +58,7 @@ public class Hypoxia extends Stage {
 
         try {
             Process p = null;
-            p = Runtime.getRuntime().exec("net " + command +" " + SERVICE_NAME);
+            p = Runtime.getRuntime().exec("net " + command + " " + SERVICE_NAME);
 
 
             p.waitFor();

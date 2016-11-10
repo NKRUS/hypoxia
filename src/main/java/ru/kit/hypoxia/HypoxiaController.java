@@ -56,6 +56,8 @@ public class HypoxiaController {
     private static final int MAX_DATA_POINTS = 3000;//;7302 / 123 * secondsForTest / NUMBER_OF_SKIP;
     private static final int MAX_DATA_VALUES = 150;
 
+    private static int RECOVERY_TIME_TO_SHOW_ON_SCREEN;
+
 
     private XYChart.Series<Number, Number> seriesHR;
     private XYChart.Series<Number, Number> seriesSPO2;
@@ -266,12 +268,23 @@ public class HypoxiaController {
                             if (currentStage == 3 && (inspections.getSpo2() >= 95 || inspections.getSpo2() >= SPO2Rest)) {
                                 currentStage = 4;
 
-                                timeOfRecovery = seconds - timeOfStartOfRecovery;
+                                if(seconds - timeOfStartOfRecovery != 0){
+                                    timeOfRecovery = seconds - timeOfStartOfRecovery;
+                                }else{
+                                    timeOfRecovery = 20; //TODO must fix one day, but not today
+                                    RECOVERY_TIME_TO_SHOW_ON_SCREEN = timeOfRecovery;
+                                }
+
 
                                 System.err.println("Время восстановления: " + timeOfRecovery);
 
                                 Platform.runLater(() -> {
-                                    textRecoveryTime.setText("" + timeOfRecovery);
+                                    if(RECOVERY_TIME_TO_SHOW_ON_SCREEN==0) {
+                                        textRecoveryTime.setText("" + timeOfRecovery);
+                                    }else {
+                                        textRecoveryTime.setText("---");
+                                    }
+
 
                                     DecimalFormatSymbols otherSymbols = new DecimalFormatSymbols();
                                     otherSymbols.setDecimalSeparator('.');
@@ -491,7 +504,13 @@ public class HypoxiaController {
 
     private JSONObject createJSON() {
         JSONObject obj = new JSONObject();
-        obj.put("HypI", textHypI.getText().equals("∞") ? "0" : textHypI.getText());
+        double hypI = 0;
+        try{
+            hypI = Double.parseDouble(textHypI.getText());
+        }catch (Exception ex){
+            System.err.println("HypI is not a number");
+        }
+        obj.put("HypI", hypI);
         return obj;
     }
 
