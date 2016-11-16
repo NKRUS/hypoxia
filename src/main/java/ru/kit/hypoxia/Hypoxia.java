@@ -1,9 +1,11 @@
 package ru.kit.hypoxia;
 
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,9 +20,9 @@ public class Hypoxia extends Stage {
 
     public Hypoxia(int age, boolean isMale, boolean isFemale, int height, int width, int activityLevel, int systBP, int diastBP, String path) throws IOException {
 
-        execService("stop");
+        //execService("stop");
 
-        execService("start");
+        //execService("start");
 
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/ru/kit/hypoxia/fxml/hypoxia.fxml"));
@@ -39,6 +41,13 @@ public class Hypoxia extends Stage {
 
         controller.setStage(this);
 
+        this.setOnCloseRequest(event -> {
+            try {
+                controller.closeConnections();
+            }finally {
+                this.close();
+            }
+        });
 
         this.setScene(new Scene(root));
         this.setMinWidth(windowWidth);
@@ -53,7 +62,7 @@ public class Hypoxia extends Stage {
         //controller.afterTest();
     }
 
-    private void execService(String command){
+    public static void execService(String command){
 
 
         try {

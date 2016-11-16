@@ -95,6 +95,9 @@ public class HypoxiaController {
     private Button buttonStart, ok_button, cancel_button;
     private Hypoxia stage;
 
+    volatile boolean isStageClosed = false;
+    volatile Socket hypoxiaSocket = null;
+
     @FXML
     private void initialize() {
         chart = new LineChartWithMarker<>(new NumberAxis(), new NumberAxis());
@@ -161,16 +164,32 @@ public class HypoxiaController {
         stage.close();
     }
 
+    void closeConnections(){
+        isStageClosed = true;
+        closeSocketConnection(hypoxiaSocket);
+    }
+
+    private void closeSocketConnection(Socket socket){
+        try {
+            socket.shutdownInput();
+            socket.shutdownOutput();
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     @FXML
     private void startTest(ActionEvent actionEvent) {
         beforeTest();
 
         Thread updateSeries = new Thread(() -> {
-            try (Socket socket = new Socket("localhost", port)) {
+            try{
+                hypoxiaSocket = new Socket("localhost", port);
 
 
-                BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                BufferedWriter output = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+                BufferedReader br = new BufferedReader(new InputStreamReader(hypoxiaSocket.getInputStream()));
+                BufferedWriter output = new BufferedWriter(new OutputStreamWriter(hypoxiaSocket.getOutputStream()));
 
 
                 StartTest startTest = new StartTest();
@@ -288,7 +307,7 @@ public class HypoxiaController {
 
                                     DecimalFormatSymbols otherSymbols = new DecimalFormatSymbols();
                                     otherSymbols.setDecimalSeparator('.');
-                                    textHypI.setText(new DecimalFormat("#.##", otherSymbols).format(timeOfFall * 1.0 / timeOfRecovery));
+                                    textHypI.setText(new DecimalFormat("#.##", otherSymbols).format(timeOfFall * 1.0 / timeOfRecovery));//TODO Если восстановление меньше 20ти
                                     ok_button.setDisable(false);
                                 });
 
@@ -303,13 +322,13 @@ public class HypoxiaController {
 
                         }
 
-
                         try {
                             Thread.sleep(10);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
                     }
+
 
                     line = br.readLine();
                     if (line != null) {
@@ -325,6 +344,12 @@ public class HypoxiaController {
 
             } catch (IOException e) {
                 e.printStackTrace();
+            }finally {
+                try {
+                    hypoxiaSocket.close();
+                } catch (IOException e) {
+                    System.err.println("Cannot close socket connections!");
+                }
             }
 
             afterTest();
@@ -337,8 +362,9 @@ public class HypoxiaController {
 
     private void stopTest() {
         Thread stopTest = new Thread(() -> {
-            try (Socket socket = new Socket("localhost", port)) {
-                BufferedWriter output = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+            try {
+                hypoxiaSocket = new Socket("localhost", port);
+                BufferedWriter output = new BufferedWriter(new OutputStreamWriter(hypoxiaSocket.getOutputStream()));
 
                 StopTest stopTestCommand = new StopTest();
                 output.write(serialize(stopTestCommand));
@@ -347,6 +373,12 @@ public class HypoxiaController {
 
             } catch (IOException e) {
                 e.printStackTrace();
+            }finally {
+                try {
+                    hypoxiaSocket.close();
+                } catch (IOException e) {
+                    System.err.println("Cannot close socket connections!");
+                }
             }
         });
 
@@ -561,9 +593,11 @@ class CheckReadyThread extends Thread {
     }
 
     public void run() {
-        try (Socket socket = new Socket("localhost", HypoxiaController.port)) {
-            BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            BufferedWriter output = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        try {
+
+            controller.hypoxiaSocket = new Socket("localhost", HypoxiaController.port);
+            BufferedReader br = new BufferedReader(new InputStreamReader(controller.hypoxiaSocket.getInputStream()));
+            BufferedWriter output = new BufferedWriter(new OutputStreamWriter(controller.hypoxiaSocket.getOutputStream()));
 
             Command command = new Launch(controller.getAge(), controller.isMan(),
                     controller.getWeight(), controller.getHeight(), controller.getActivityLevel(),
@@ -607,7 +641,7 @@ class CheckReadyThread extends Thread {
                 } catch (InterruptedException e) {
                     System.err.println("Interrupt checking ready");
                 }
-            } while (!controller.isTesting && !isInterrupted());
+            } while (!controller.isTesting && !isInterrupted() && !controller.isStageClosed);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -625,7 +659,7 @@ class UpdateTimerThread extends Thread {
     }
 
     public void run() {
-        while (!isInterrupted()) {
+        while (!isInterrupted() && !controller.isStageClosed) {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
