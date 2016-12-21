@@ -20,19 +20,15 @@ public class Main extends Application{
         primaryStage.setTitle("Hello World!");
         Button btn = new Button();
         btn.setText("Гипоксический тест");
-        btn.setOnAction(new EventHandler<ActionEvent>() {
-
-            @Override
-            public void handle(ActionEvent event) {
-                Stage s = null;
-                try {
-                    s = new Hypoxia(20, true, false, 170, 70, 4, 120, 80, "");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                s.show();
+        btn.setOnAction(event -> {
+            Stage s = null;
+            try {
+                s = new Hypoxia(20, true, false, 170, 70, 4, 120, 80, "");
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+
+            s.show();
         });
 
         StackPane root = new StackPane();

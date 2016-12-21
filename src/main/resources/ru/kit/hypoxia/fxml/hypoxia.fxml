@@ -5,308 +5,340 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
 
-<GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="500.0" minWidth="900.0" prefHeight="500.0" prefWidth="900.0" stylesheets="@../css/buttons.css" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.kit.hypoxia.HypoxiaController">
-    <columnConstraints>
-        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-    </columnConstraints>
-    <rowConstraints>
-        <RowConstraints maxHeight="75.0" minHeight="75.0" prefHeight="75.0" vgrow="SOMETIMES" />
-        <RowConstraints maxHeight="1.7976931348623157E308" minHeight="-Infinity" vgrow="SOMETIMES" />
-        <RowConstraints maxHeight="75.0" minHeight="75.0" prefHeight="75.0" vgrow="SOMETIMES" />
-    </rowConstraints>
-    <children>
-        <GridPane maxWidth="1.7976931348623157E308" style="-fx-background-color: #52616B;">
-            <columnConstraints>
-                <ColumnConstraints hgrow="SOMETIMES" maxWidth="75.0" minWidth="75.0" prefWidth="75.0" />
-                <ColumnConstraints hgrow="ALWAYS" maxWidth="800.0" minWidth="10.0" prefWidth="153.0" />
-                <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="500.0" prefWidth="672.0" />
-            </columnConstraints>
-            <rowConstraints>
-                <RowConstraints maxHeight="75.0" minHeight="75.0" prefHeight="75.0" vgrow="SOMETIMES" />
-            </rowConstraints>
-            <children>
-                <ImageView fitHeight="26.0" fitWidth="26.0" pickOnBounds="true" preserveRatio="true" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.valignment="CENTER" GridPane.vgrow="ALWAYS">
-                    <image>
-                        <Image url="@../image/arrow.png" />
-                    </image>
-                </ImageView>
-                <Label text="Гипоксия" textFill="WHITE" GridPane.columnIndex="1">
-                    <font>
+<StackPane prefHeight="500.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.kit.hypoxia.HypoxiaController">
+   <children>
+      <GridPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="500.0" minWidth="900.0" prefHeight="500.0" prefWidth="900.0" stylesheets="@../css/buttons.css">
+          <columnConstraints>
+              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+          </columnConstraints>
+          <rowConstraints>
+              <RowConstraints maxHeight="75.0" minHeight="75.0" prefHeight="75.0" vgrow="SOMETIMES" />
+              <RowConstraints maxHeight="1.7976931348623157E308" minHeight="-Infinity" vgrow="SOMETIMES" />
+              <RowConstraints maxHeight="75.0" minHeight="75.0" prefHeight="75.0" vgrow="SOMETIMES" />
+          </rowConstraints>
+          <children>
+              <GridPane maxWidth="1.7976931348623157E308" style="-fx-background-color: #52616B;">
+                  <columnConstraints>
+                      <ColumnConstraints hgrow="SOMETIMES" maxWidth="75.0" minWidth="75.0" prefWidth="75.0" />
+                      <ColumnConstraints hgrow="ALWAYS" maxWidth="800.0" minWidth="10.0" prefWidth="153.0" />
+                      <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="500.0" prefWidth="672.0" />
+                  </columnConstraints>
+                  <rowConstraints>
+                      <RowConstraints maxHeight="75.0" minHeight="75.0" prefHeight="75.0" vgrow="SOMETIMES" />
+                  </rowConstraints>
+                  <children>
+                      <ImageView fitHeight="26.0" fitWidth="26.0" pickOnBounds="true" preserveRatio="true" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.valignment="CENTER" GridPane.vgrow="ALWAYS">
+                          <image>
+                              <Image url="@../image/arrow.png" />
+                          </image>
+                      </ImageView>
+                      <Label text="Гипоксия" textFill="WHITE" GridPane.columnIndex="1">
+                          <font>
+                              <Font name="Calibri" size="24.0" />
+                          </font>
+                      </Label>
+                      <Label fx:id="textNotification" prefHeight="28.0" text="Проверьте подключение пульсоксиметра!" textFill="WHITE" GridPane.columnIndex="2" GridPane.halignment="RIGHT">
+                          <font>
+                              <Font name="Calibri" size="24.0" />
+                          </font>
+                          <GridPane.margin>
+                              <Insets right="20.0" />
+                          </GridPane.margin>
+                      </Label>
+                      <Label fx:id="textMaskaOn" prefHeight="28.0" text="Наденьте гипоксическую маску" textFill="WHITE" GridPane.columnIndex="2" GridPane.halignment="RIGHT">
+                          <font>
+                              <Font name="Calibri" size="24.0" />
+                          </font>
+                          <GridPane.margin>
+                              <Insets right="20.0" />
+                          </GridPane.margin>
+                      </Label>
+                      <Label fx:id="textMaskaOff" prefHeight="28.0" text="Снимите гипоксическую маску" textFill="WHITE" GridPane.columnIndex="2" GridPane.halignment="RIGHT">
+                          <font>
+                              <Font name="Calibri" size="24.0" />
+                          </font>
+                          <GridPane.margin>
+                              <Insets right="20.0" />
+                          </GridPane.margin>
+                      </Label>
+                  <Label fx:id="textSPO2soSmall" prefHeight="28.0" text="SpO2 слишком мало! Рекомендуем прекратить обследование!" textFill="RED" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.valignment="TOP">
+                     <font>
                         <Font name="Calibri" size="24.0" />
-                    </font>
-                </Label>
-                <Label fx:id="textNotification" prefHeight="28.0" text="Проверьте подключение пульсоксиметра!" textFill="WHITE" GridPane.columnIndex="2" GridPane.halignment="RIGHT">
-                    <font>
-                        <Font name="Calibri" size="24.0" />
-                    </font>
-                    <GridPane.margin>
+                     </font>
+                     <GridPane.margin>
                         <Insets right="20.0" />
-                    </GridPane.margin>
-                </Label>
-                <Label fx:id="textMaskaOn" prefHeight="28.0" text="Наденьте гипоксическую маску" textFill="WHITE" GridPane.columnIndex="2" GridPane.halignment="RIGHT">
-                    <font>
-                        <Font name="Calibri" size="24.0" />
-                    </font>
-                    <GridPane.margin>
-                        <Insets right="20.0" />
-                    </GridPane.margin>
-                </Label>
-                <Label fx:id="textMaskaOff" prefHeight="28.0" text="Снимите гипоксическую маску" textFill="WHITE" GridPane.columnIndex="2" GridPane.halignment="RIGHT">
-                    <font>
-                        <Font name="Calibri" size="24.0" />
-                    </font>
-                    <GridPane.margin>
-                        <Insets right="20.0" />
-                    </GridPane.margin>
-                </Label>
-            <Label fx:id="textSPO2soSmall" prefHeight="28.0" text="SpO2 слишком мало! Рекомендуем прекратить обследование!" textFill="RED" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.valignment="TOP">
-               <font>
-                  <Font name="Calibri" size="24.0" />
-               </font>
-               <GridPane.margin>
-                  <Insets right="20.0" />
-               </GridPane.margin>
-            </Label>
-            </children>
-        </GridPane>
-        <GridPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2">
-            <columnConstraints>
-                <ColumnConstraints hgrow="SOMETIMES" maxWidth="132.0" minWidth="132.0" prefWidth="132.0" />
-                <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="420.0" prefWidth="692.0" />
-                <ColumnConstraints hgrow="SOMETIMES" maxWidth="76.0" minWidth="10.0" prefWidth="76.0" />
-            </columnConstraints>
-            <rowConstraints>
-                <RowConstraints maxHeight="75.0" minHeight="75.0" prefHeight="75.0" vgrow="SOMETIMES" />
-            </rowConstraints>
-            <children>
-                <Button fx:id="buttonStart" mnemonicParsing="false" onAction="#startTest" text="СТАРТ">
-                    <GridPane.margin>
-                        <Insets left="15.0" top="17.0" />
-                    </GridPane.margin>
-                    <graphic>
-                        <ImageView fitHeight="16.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
-                            <image>
-                                <Image url="@../image/start_icon.png" />
-                            </image>
-                        </ImageView>
-                    </graphic>
-                    <font>
-                        <Font name="Calibri" size="21.0" />
-                    </font>
-                </Button>
-                <Button fx:id="cancel_button" mnemonicParsing="false" onAction="#exit" text="ОТМЕНА" GridPane.columnIndex="1" GridPane.halignment="RIGHT">
-                    <font>
-                        <Font name="Calibri" size="21.0" />
-                    </font>
-                    <GridPane.margin>
-                        <Insets right="15.0" top="17.0" />
-                    </GridPane.margin>
-                </Button>
-                <Button fx:id="ok_button" disable="true" mnemonicParsing="false" onAction="#ok" text="ОК" GridPane.columnIndex="2" GridPane.halignment="RIGHT">
-                    <font>
-                        <Font name="Calibri" size="21.0" />
-                    </font>
-                    <GridPane.margin>
-                        <Insets right="22.0" top="17.0" />
-                    </GridPane.margin>
-                </Button>
-            </children>
-        </GridPane>
-        <GridPane maxWidth="1.7976931348623157E308" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
-            <columnConstraints>
-                <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="10.0" prefWidth="594.0" />
-                <ColumnConstraints hgrow="ALWAYS" maxWidth="400.0" minWidth="320.0" prefWidth="400.0" />
-            </columnConstraints>
-            <rowConstraints>
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-            </rowConstraints>
-            <children>
-                <GridPane maxWidth="1.7976931348623157E308">
-                    <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                    </columnConstraints>
-                    <rowConstraints>
-                        <RowConstraints maxHeight="58.0" minHeight="58.0" prefHeight="58.0" vgrow="SOMETIMES" />
-                        <RowConstraints maxHeight="1.7976931348623157E308" vgrow="SOMETIMES" />
-                    </rowConstraints>
-                    <GridPane.margin>
-                        <Insets right="5.0" />
-                    </GridPane.margin>
-                    <children>
-                        <Pane prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: dadada;">
-                            <children>
-                                <Label layoutX="14.0" layoutY="21.0" text="SpO2 [%]">
-                                    <font>
-                                        <Font name="Calibri Bold" size="16.0" />
-                                    </font>
-                                </Label>
-                        <ImageView fitHeight="23.0" fitWidth="26.0" layoutX="85.0" layoutY="19.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../image/yellow_line.jpg" />
-                           </image>
-                        </ImageView>
-                                <Label layoutX="162.0" layoutY="21.0" text="ЧСС [УдМ]">
-                                    <font>
-                                        <Font name="Calibri Bold" size="16.0" />
-                                    </font>
-                                </Label>
-                        <ImageView fitHeight="23.0" fitWidth="26.0" layoutX="241.0" layoutY="19.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../image/orange_line.jpg" />
-                           </image>
-                        </ImageView>
-                            </children>
-                        </Pane>
-                  <GridPane fx:id="forChart" GridPane.rowIndex="1">
-                    <columnConstraints>
-                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                    </columnConstraints>
-                    <rowConstraints>
+                     </GridPane.margin>
+                  </Label>
+                  </children>
+              </GridPane>
+              <GridPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2">
+                  <columnConstraints>
+                      <ColumnConstraints hgrow="SOMETIMES" maxWidth="132.0" minWidth="132.0" prefWidth="132.0" />
+                      <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="420.0" prefWidth="692.0" />
+                      <ColumnConstraints hgrow="SOMETIMES" maxWidth="76.0" minWidth="10.0" prefWidth="76.0" />
+                  </columnConstraints>
+                  <rowConstraints>
+                      <RowConstraints maxHeight="75.0" minHeight="75.0" prefHeight="75.0" vgrow="SOMETIMES" />
+                  </rowConstraints>
+                  <children>
+                      <Button fx:id="buttonStart" mnemonicParsing="false" onAction="#startTest" text="СТАРТ">
+                          <GridPane.margin>
+                              <Insets left="15.0" top="17.0" />
+                          </GridPane.margin>
+                          <graphic>
+                              <ImageView fitHeight="16.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                  <image>
+                                      <Image url="@../image/start_icon.png" />
+                                  </image>
+                              </ImageView>
+                          </graphic>
+                          <font>
+                              <Font name="Calibri" size="21.0" />
+                          </font>
+                      </Button>
+                      <Button fx:id="cancel_button" mnemonicParsing="false" onAction="#cancel" text="ОТМЕНА" GridPane.columnIndex="1" GridPane.halignment="RIGHT">
+                          <font>
+                              <Font name="Calibri" size="21.0" />
+                          </font>
+                          <GridPane.margin>
+                              <Insets right="15.0" top="17.0" />
+                          </GridPane.margin>
+                      </Button>
+                      <Button fx:id="ok_button" disable="true" mnemonicParsing="false" onAction="#ok" text="ОК" GridPane.columnIndex="2" GridPane.halignment="RIGHT">
+                          <font>
+                              <Font name="Calibri" size="21.0" />
+                          </font>
+                          <GridPane.margin>
+                              <Insets right="22.0" top="17.0" />
+                          </GridPane.margin>
+                      </Button>
+                  </children>
+              </GridPane>
+              <GridPane maxWidth="1.7976931348623157E308" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
+                  <columnConstraints>
+                      <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="10.0" prefWidth="594.0" />
+                      <ColumnConstraints hgrow="ALWAYS" maxWidth="400.0" minWidth="320.0" prefWidth="400.0" />
+                  </columnConstraints>
+                  <rowConstraints>
                       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                    </rowConstraints>
-                  </GridPane>
-
-                    </children>
-                </GridPane>
-                <GridPane GridPane.columnIndex="1">
-                    <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="10.0" prefWidth="199.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="150.0" minWidth="84.0" prefWidth="97.0" />
-                    </columnConstraints>
-                    <rowConstraints>
-                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                    </rowConstraints>
-                    <children>
-                        <Label text="SpO2" GridPane.halignment="RIGHT">
-                            <font>
-                                <Font name="Calibri Bold" size="20.0" />
-                            </font>
-                            <GridPane.margin>
-                                <Insets left="5.0" right="5.0" />
-                            </GridPane.margin>
-                        </Label>
-                        <Label fx:id="textSPO2" alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="-Infinity" style="-fx-background-color: #4b5962;" text="---" textFill="WHITE" textOverrun="CLIP" GridPane.columnIndex="1">
-                            <font>
-                                <Font name="Calibri" size="32.0" />
-                            </font>
-                            <GridPane.margin>
-                                <Insets left="5.0" right="5.0" />
-                            </GridPane.margin>
-                        </Label>
-                        <Label text="ЧСС [УдМ]" GridPane.halignment="RIGHT" GridPane.rowIndex="1">
-                            <font>
-                                <Font name="Calibri Bold" size="20.0" />
-                            </font>
-                            <GridPane.margin>
-                                <Insets left="5.0" right="5.0" />
-                            </GridPane.margin>
-                        </Label>
-                        <Label fx:id="textHR" alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="-Infinity" style="-fx-background-color: #4b5962;" text="---" textFill="WHITE" textOverrun="CLIP" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                            <font>
-                                <Font name="Calibri" size="32.0" />
-                            </font>
-                            <GridPane.margin>
-                                <Insets left="5.0" right="5.0" />
-                            </GridPane.margin>
-                        </Label>
-                        <Label text="Таймер" GridPane.halignment="RIGHT" GridPane.rowIndex="2">
-                            <font>
-                                <Font name="Calibri Bold" size="20.0" />
-                            </font>
-                            <GridPane.margin>
-                                <Insets left="5.0" right="5.0" />
-                            </GridPane.margin>
-                        </Label>
-                        <Label fx:id="textTimer" alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="-Infinity" style="-fx-background-color: #4b5962;" text="00:00" textFill="WHITE" textOverrun="CLIP" GridPane.columnIndex="1" GridPane.rowIndex="2">
-                            <font>
-                                <Font name="Calibri" size="32.0" />
-                            </font>
-                            <GridPane.margin>
-                                <Insets left="5.0" right="5.0" />
-                            </GridPane.margin>
-                        </Label>
-                        <Label text="Снижение (сек)" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
-                            <font>
-                                <Font name="Calibri Bold" size="20.0" />
-                            </font>
-                            <GridPane.margin>
-                                <Insets right="5.0" />
-                            </GridPane.margin>
-                        </Label>
-                        <Label text="Восстановление (сек)" GridPane.halignment="RIGHT" GridPane.rowIndex="5">
-                            <font>
-                                <Font name="Calibri Bold" size="20.0" />
-                            </font>
-                            <GridPane.margin>
-                                <Insets right="5.0" />
-                            </GridPane.margin>
-                        </Label>
-                        <Label fx:id="textFallTime" alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="-Infinity" style="-fx-background-color: #4b5962;" text="---" textFill="WHITE" textOverrun="CLIP" GridPane.columnIndex="1" GridPane.rowIndex="4">
-                            <font>
-                                <Font name="Calibri" size="32.0" />
-                            </font>
-                            <GridPane.margin>
-                                <Insets left="5.0" right="5.0" />
-                            </GridPane.margin>
-                        </Label>
-                        <Label fx:id="textRecoveryTime" alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="-Infinity" style="-fx-background-color: #4b5962;" text="---" textFill="WHITE" textOverrun="CLIP" GridPane.columnIndex="1" GridPane.rowIndex="5">
-                            <font>
-                                <Font name="Calibri" size="32.0" />
-                            </font>
-                            <GridPane.margin>
-                                <Insets left="5.0" right="5.0" />
-                            </GridPane.margin>
-                        </Label>
-                        <Label text="HypI" GridPane.halignment="RIGHT" GridPane.rowIndex="6">
-                            <font>
-                                <Font name="Calibri Bold" size="20.0" />
-                            </font>
-                            <GridPane.margin>
-                                <Insets right="5.0" />
-                            </GridPane.margin>
-                        </Label>
-                        <Label fx:id="textHypI" alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="-Infinity" style="-fx-background-color: #4b5962;" text="---" textFill="WHITE" textOverrun="CLIP" GridPane.columnIndex="1" GridPane.rowIndex="6">
-                            <font>
-                                <Font name="Calibri" size="32.0" />
-                            </font>
-                            <GridPane.margin>
-                                <Insets left="5.0" right="5.0" />
-                            </GridPane.margin>
-                        </Label>
-                        <Label text="SpO2 покоя" GridPane.halignment="RIGHT" GridPane.rowIndex="3">
-                            <font>
-                                <Font name="Calibri Bold" size="20.0" />
-                            </font>
-                        </Label>
-                        <Label fx:id="textSPO2Rest" alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="-Infinity" style="-fx-background-color: #4b5962;" text="---" textFill="WHITE" textOverrun="CLIP" GridPane.columnIndex="1" GridPane.rowIndex="3">
-                            <font>
-                                <Font name="Calibri" size="32.0" />
-                            </font>
-                            <GridPane.margin>
-                                <Insets left="5.0" right="5.0" />
-                            </GridPane.margin>
-                        </Label>
-                    </children>
-                </GridPane>
-            </children>
-            <opaqueInsets>
-                <Insets />
-            </opaqueInsets>
-            <GridPane.margin>
-                <Insets left="15.0" right="15.0" top="25.0" />
-            </GridPane.margin>
-        </GridPane>
-    </children>
-</GridPane>
+                  </rowConstraints>
+                  <children>
+                      <GridPane maxWidth="1.7976931348623157E308">
+                          <columnConstraints>
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                          </columnConstraints>
+                          <rowConstraints>
+                              <RowConstraints maxHeight="58.0" minHeight="58.0" prefHeight="58.0" vgrow="SOMETIMES" />
+                              <RowConstraints maxHeight="1.7976931348623157E308" vgrow="SOMETIMES" />
+                          </rowConstraints>
+                          <GridPane.margin>
+                              <Insets right="5.0" />
+                          </GridPane.margin>
+                          <children>
+                              <Pane prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: dadada;">
+                                  <children>
+                                      <Label layoutX="14.0" layoutY="21.0" text="SpO2 [%]">
+                                          <font>
+                                              <Font name="Calibri Bold" size="16.0" />
+                                          </font>
+                                      </Label>
+                              <ImageView fitHeight="23.0" fitWidth="26.0" layoutX="85.0" layoutY="19.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../image/yellow_line.jpg" />
+                                 </image>
+                              </ImageView>
+                                      <Label layoutX="162.0" layoutY="21.0" text="ЧСС [УдМ]">
+                                          <font>
+                                              <Font name="Calibri Bold" size="16.0" />
+                                          </font>
+                                      </Label>
+                              <ImageView fitHeight="23.0" fitWidth="26.0" layoutX="241.0" layoutY="19.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../image/orange_line.jpg" />
+                                 </image>
+                              </ImageView>
+                                  </children>
+                              </Pane>
+                        <GridPane fx:id="forChart" GridPane.rowIndex="1">
+                          <columnConstraints>
+                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                          </columnConstraints>
+                          <rowConstraints>
+                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                          </rowConstraints>
+                        </GridPane>
+      
+                          </children>
+                      </GridPane>
+                      <GridPane GridPane.columnIndex="1">
+                          <columnConstraints>
+                              <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="10.0" prefWidth="199.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" maxWidth="150.0" minWidth="84.0" prefWidth="97.0" />
+                          </columnConstraints>
+                          <rowConstraints>
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                          </rowConstraints>
+                          <children>
+                              <Label text="SpO2" GridPane.halignment="RIGHT">
+                                  <font>
+                                      <Font name="Calibri Bold" size="20.0" />
+                                  </font>
+                                  <GridPane.margin>
+                                      <Insets left="5.0" right="5.0" />
+                                  </GridPane.margin>
+                              </Label>
+                              <Label fx:id="textSPO2" alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="-Infinity" style="-fx-background-color: #4b5962;" text="---" textFill="WHITE" textOverrun="CLIP" GridPane.columnIndex="1">
+                                  <font>
+                                      <Font name="Calibri" size="32.0" />
+                                  </font>
+                                  <GridPane.margin>
+                                      <Insets left="5.0" right="5.0" />
+                                  </GridPane.margin>
+                              </Label>
+                              <Label text="ЧСС [УдМ]" GridPane.halignment="RIGHT" GridPane.rowIndex="1">
+                                  <font>
+                                      <Font name="Calibri Bold" size="20.0" />
+                                  </font>
+                                  <GridPane.margin>
+                                      <Insets left="5.0" right="5.0" />
+                                  </GridPane.margin>
+                              </Label>
+                              <Label fx:id="textHR" alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="-Infinity" style="-fx-background-color: #4b5962;" text="---" textFill="WHITE" textOverrun="CLIP" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                  <font>
+                                      <Font name="Calibri" size="32.0" />
+                                  </font>
+                                  <GridPane.margin>
+                                      <Insets left="5.0" right="5.0" />
+                                  </GridPane.margin>
+                              </Label>
+                              <Label text="Таймер" GridPane.halignment="RIGHT" GridPane.rowIndex="2">
+                                  <font>
+                                      <Font name="Calibri Bold" size="20.0" />
+                                  </font>
+                                  <GridPane.margin>
+                                      <Insets left="5.0" right="5.0" />
+                                  </GridPane.margin>
+                              </Label>
+                              <Label fx:id="textTimer" alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="-Infinity" style="-fx-background-color: #4b5962;" text="00:00" textFill="WHITE" textOverrun="CLIP" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                                  <font>
+                                      <Font name="Calibri" size="32.0" />
+                                  </font>
+                                  <GridPane.margin>
+                                      <Insets left="5.0" right="5.0" />
+                                  </GridPane.margin>
+                              </Label>
+                              <Label text="Снижение (сек)" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
+                                  <font>
+                                      <Font name="Calibri Bold" size="20.0" />
+                                  </font>
+                                  <GridPane.margin>
+                                      <Insets right="5.0" />
+                                  </GridPane.margin>
+                              </Label>
+                              <Label text="Восстановление (сек)" GridPane.halignment="RIGHT" GridPane.rowIndex="5">
+                                  <font>
+                                      <Font name="Calibri Bold" size="20.0" />
+                                  </font>
+                                  <GridPane.margin>
+                                      <Insets right="5.0" />
+                                  </GridPane.margin>
+                              </Label>
+                              <Label fx:id="textFallTime" alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="-Infinity" style="-fx-background-color: #4b5962;" text="---" textFill="WHITE" textOverrun="CLIP" GridPane.columnIndex="1" GridPane.rowIndex="4">
+                                  <font>
+                                      <Font name="Calibri" size="32.0" />
+                                  </font>
+                                  <GridPane.margin>
+                                      <Insets left="5.0" right="5.0" />
+                                  </GridPane.margin>
+                              </Label>
+                              <Label fx:id="textRecoveryTime" alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="-Infinity" style="-fx-background-color: #4b5962;" text="---" textFill="WHITE" textOverrun="CLIP" GridPane.columnIndex="1" GridPane.rowIndex="5">
+                                  <font>
+                                      <Font name="Calibri" size="32.0" />
+                                  </font>
+                                  <GridPane.margin>
+                                      <Insets left="5.0" right="5.0" />
+                                  </GridPane.margin>
+                              </Label>
+                              <Label text="HypI" GridPane.halignment="RIGHT" GridPane.rowIndex="6">
+                                  <font>
+                                      <Font name="Calibri Bold" size="20.0" />
+                                  </font>
+                                  <GridPane.margin>
+                                      <Insets right="5.0" />
+                                  </GridPane.margin>
+                              </Label>
+                              <Label fx:id="textHypI" alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="-Infinity" style="-fx-background-color: #4b5962;" text="---" textFill="WHITE" textOverrun="CLIP" GridPane.columnIndex="1" GridPane.rowIndex="6">
+                                  <font>
+                                      <Font name="Calibri" size="32.0" />
+                                  </font>
+                                  <GridPane.margin>
+                                      <Insets left="5.0" right="5.0" />
+                                  </GridPane.margin>
+                              </Label>
+                              <Label text="SpO2 покоя" GridPane.halignment="RIGHT" GridPane.rowIndex="3">
+                                  <font>
+                                      <Font name="Calibri Bold" size="20.0" />
+                                  </font>
+                              </Label>
+                              <Label fx:id="textSPO2Rest" alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="-Infinity" style="-fx-background-color: #4b5962;" text="---" textFill="WHITE" textOverrun="CLIP" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                                  <font>
+                                      <Font name="Calibri" size="32.0" />
+                                  </font>
+                                  <GridPane.margin>
+                                      <Insets left="5.0" right="5.0" />
+                                  </GridPane.margin>
+                              </Label>
+                          </children>
+                      </GridPane>
+                  </children>
+                  <opaqueInsets>
+                      <Insets />
+                  </opaqueInsets>
+                  <GridPane.margin>
+                      <Insets left="15.0" right="15.0" top="25.0" />
+                  </GridPane.margin>
+              </GridPane>
+          </children>
+      </GridPane>
+      <AnchorPane fx:id="badEndScreen" prefHeight="500.0" prefWidth="900.0" stylesheets="@../css/buttons.css" visible="false">
+         <children>
+            <AnchorPane opacity="0.6" style="-fx-background-color: FFCC99;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            <VBox alignment="CENTER" layoutX="517.0" layoutY="256.8359375" prefHeight="727.0" prefWidth="1302.0" spacing="120.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+               <children>
+                  <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Тест не завершен">
+                     <font>
+                        <Font size="40.0" />
+                     </font>
+                  </Text>
+                  <HBox alignment="CENTER" spacing="40.0">
+                     <children>
+                        <Button alignment="CENTER" mnemonicParsing="false" onAction="#cancel" prefHeight="65.0" prefWidth="245.0" styleClass="exitButton" text="Закрыть" textAlignment="CENTER">
+                           <font>
+                              <Font size="20.0" />
+                           </font>
+                        </Button>
+                     </children>
+                  </HBox>
+               </children>
+            </VBox>
+         </children>
+      </AnchorPane>
+   </children>
+</StackPane>

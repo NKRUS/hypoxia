@@ -13,3 +13,17 @@
 #cancel_button:hover {
     -fx-background-color: #ff7a58;
 }
+.endButton {
+    -fx-background-color: #36804d;
+    -fx-text-fill: white;
+}
+.endButton:hover {
+    -fx-background-color: #39ad77;
+}
+.exitButton{
+    -fx-background-color: #e64c3b;
+    -fx-text-fill: white;
+}
+.exitButton:hover{
+    -fx-background-color: #ff7a58;
+}
