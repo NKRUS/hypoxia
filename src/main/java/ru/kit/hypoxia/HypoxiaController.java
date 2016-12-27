@@ -286,7 +286,7 @@ public class HypoxiaController {
 
                             if (currentStage == 2 ) {
                                 smallestSPO2 = (spo2!=0 && spo2<smallestSPO2)?spo2:smallestSPO2;
-                                if (seconds == secondTime || ((spo2 <= 92 || (spo2 <= (SPO2Rest - 7))) && spo2 != 0)) {
+                                if (seconds == secondTime || ((spo2 <= 90 || (spo2 <= (SPO2Rest - 7))) && spo2 != 0)) {
                                     currentStage = 3;
                                     System.err.println("Наименьшее SPO2: " + smallestSPO2);
 
@@ -317,7 +317,7 @@ public class HypoxiaController {
 //                                countOfSPO2Recovery += 1;
 //                            }
 
-                            if (currentStage == 3 && (spo2 >= 95 || spo2 >= SPO2Rest)) {
+                            if (currentStage == 3 && ((spo2 >= 95 || spo2 >= SPO2Rest) || seconds == secondTime)) {
                                 currentStage = 4;
                                 timeOfRecovery = seconds - timeOfStartOfRecovery;
                                 double hypIndex = getHypIValue(timeOfFall,timeOfRecovery);
