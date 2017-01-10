@@ -103,7 +103,7 @@ public class HypoxiaController {
     private AnchorPane badEndScreen;
 
     volatile boolean isStageClosed = false;
-    volatile static Socket hypoxiaSocket = null;
+    //volatile Socket hypoxiaSocket = null;
 
 
     @FXML
@@ -169,25 +169,23 @@ public class HypoxiaController {
 
     void closeConnections() {
         isStageClosed = true;
-        closeSocketConnection(hypoxiaSocket);
+        closeSocketConnection();
     }
 
-    private void closeSocketConnection(Socket socket) {
+    private void closeSocketConnection() {
         System.out.println("Starting closing connections");
-        try {
-            if (checkReadyThread != null) checkReadyThread.interrupt();
-            if (updateTimerThread != null) updateTimerThread.interrupt();
-            if (updateSeries != null) updateSeries.interrupt();
-            if (stopTest != null) stopTest.interrupt();
-            if(!socket.isClosed()){
+
+        if (checkReadyThread != null) checkReadyThread.interrupt();
+        if (updateTimerThread != null) updateTimerThread.interrupt();
+        if (updateSeries != null) updateSeries.interrupt();
+        if (stopTest != null) stopTest.interrupt();
+            /*if(!socket.isClosed()){
                 socket.shutdownInput();
                 socket.shutdownOutput();
                 socket.close();
                 System.out.println(socket.isClosed()?"Socket closed":"Socket not closed!");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            }*/
+
     }
 
     @FXML
@@ -195,12 +193,12 @@ public class HypoxiaController {
         beforeTest();
 
         updateSeries = new Thread(() -> {
-            try {
-                hypoxiaSocket = new Socket("localhost", port);
-
-
+            try (Socket socket = new Socket("localhost", port);
+                 BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                 BufferedWriter output = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))) {
+                /*hypoxiaSocket = new Socket("localhost", port);
                 BufferedReader br = new BufferedReader(new InputStreamReader(hypoxiaSocket.getInputStream()));
-                BufferedWriter output = new BufferedWriter(new OutputStreamWriter(hypoxiaSocket.getOutputStream()));
+                BufferedWriter output = new BufferedWriter(new OutputStreamWriter(hypoxiaSocket.getOutputStream()));*/
 
 
                 StartTest startTest = new StartTest();
@@ -233,7 +231,8 @@ public class HypoxiaController {
                                 zeroSecondMoment = seconds;
                             }
 
-                        } else*/ {
+                        } else*/
+                        {
                             spo2 = inspections.getSpo2();
                             pulse = inspections.getPulse();
                             /*zeroWasCatched = false;
@@ -253,7 +252,7 @@ public class HypoxiaController {
                             }
 
                             if (seconds <= firstTime) {
-                                if(spo2>sumOfSPO2Rest) sumOfSPO2Rest = spo2;
+                                if (spo2 > sumOfSPO2Rest) sumOfSPO2Rest = spo2;
                                 /*sumOfSPO2Rest += spo2;
                                 countOfSPO2Rest += 1;*/
                             }
@@ -284,8 +283,8 @@ public class HypoxiaController {
 
                             }
 
-                            if (currentStage == 2 ) {
-                                smallestSPO2 = (spo2!=0 && spo2<smallestSPO2)?spo2:smallestSPO2;
+                            if (currentStage == 2) {
+                                smallestSPO2 = (spo2 != 0 && spo2 < smallestSPO2) ? spo2 : smallestSPO2;
                                 if (seconds == secondTime || ((spo2 <= 90 || (spo2 <= (SPO2Rest - 7))) && spo2 != 0)) {
                                     currentStage = 3;
                                     System.err.println("Наименьшее SPO2: " + smallestSPO2);
@@ -320,7 +319,7 @@ public class HypoxiaController {
                             if (currentStage == 3 && ((spo2 >= 95 || spo2 >= SPO2Rest) || seconds == secondTime)) {
                                 currentStage = 4;
                                 timeOfRecovery = seconds - timeOfStartOfRecovery;
-                                double hypIndex = getHypIValue(timeOfFall,timeOfRecovery);
+                                double hypIndex = getHypIValue(timeOfFall, timeOfRecovery);
                                 /*if (seconds - timeOfStartOfRecovery != 0) {
                                     timeOfRecovery = seconds - timeOfStartOfRecovery;
                                 } else {
@@ -340,7 +339,7 @@ public class HypoxiaController {
                                     ok_button.setDisable(false);
                                 });
                                 afterTest();
-                                closeSocketConnection(hypoxiaSocket);
+                                closeSocketConnection();
                                 //stopTest();
 
                             }
@@ -372,38 +371,41 @@ public class HypoxiaController {
                 if (data instanceof LastResearch) {
                     LastResearch lastResearch = (LastResearch) data;
                     System.err.println(lastResearch);
+                    afterTest();
                 }
 
             } catch (IOException e) {
                 e.printStackTrace();
-            } finally {
-                closeSocketConnection(hypoxiaSocket);
             }
+            /*finally {
+                closeSocketConnection();
+            }*/
 
         });
         updateSeries.start();
     }
-    private double getHypIValue(int timeOfFall, int timeOfRecovery){
+
+    private double getHypIValue(int timeOfFall, int timeOfRecovery) {
         //Проверки
         //if(timeOfFall<timeOfRecovery) throw new IllegalArgumentException("timeOfFall can't be smaller than timeOfRecovery");
-        if(timeOfRecovery<0) throw new IllegalArgumentException("timeOfRecovery can't be negative");
+        if (timeOfRecovery < 0) throw new IllegalArgumentException("timeOfRecovery can't be negative");
         //Логика
         System.out.println("SPO2Rest = " + SPO2Rest);
         System.out.println("smallestSPO2 = " + smallestSPO2);
-        int difference = SPO2Rest-smallestSPO2;
-        if(timeOfRecovery>0 || difference>=7){
+        int difference = SPO2Rest - smallestSPO2;
+        if (timeOfRecovery > 0 || difference >= 7) {
             double hypIndex = timeOfFall * 1.0 / timeOfRecovery;
-            if(hypIndex>9) return 9;
-            if(hypIndex<1) return 1;
+            if (hypIndex > 9) return 9;
+            if (hypIndex < 1) return 1;
             return Math.round(hypIndex);
-        }else if(timeOfRecovery==0){
-            if(difference<1) return 9;
-            else if(difference==1) return 8;
-            else if(difference==2) return 7;
-            else if(difference==3) return 6;
-            else if(difference==4) return 5;
-            else if(difference==5) return 4;
-            else if(difference==6) return 3;
+        } else if (timeOfRecovery == 0) {
+            if (difference < 1) return 9;
+            else if (difference == 1) return 8;
+            else if (difference == 2) return 7;
+            else if (difference == 3) return 6;
+            else if (difference == 4) return 5;
+            else if (difference == 5) return 4;
+            else if (difference == 6) return 3;
         }
         //С логикой не очень
         throw new IllegalArgumentException("Can't calculate HypI Value");
@@ -438,7 +440,7 @@ public class HypoxiaController {
     private void cancel(ActionEvent actionEvent) {
         try {
             closeConnections();
-        }finally {
+        } finally {
             stage.close();
         }
     }
@@ -449,7 +451,7 @@ public class HypoxiaController {
         writeJSON();
         try {
             closeConnections();
-        }finally {
+        } finally {
             stage.close();
         }
 
@@ -486,8 +488,8 @@ public class HypoxiaController {
     }
 
     void afterTest() {
-        if(currentStage!=4) badEndScreen.setVisible(true);
-        updateTimerThread.interrupt();
+        if (currentStage != 4) badEndScreen.setVisible(true);
+        if(updateTimerThread!=null) updateTimerThread.interrupt();
         isTesting = false;
         seconds = 0;
         System.err.println("After test");
@@ -646,10 +648,12 @@ class CheckReadyThread extends Thread {
     }
 
     public void run() {
-        try {
-            controller.hypoxiaSocket = new Socket("localhost", HypoxiaController.port);
+        try (Socket socket = new Socket("localhost", HypoxiaController.port);
+             BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+             BufferedWriter output = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));) {
+           /* controller.hypoxiaSocket = new Socket("localhost", HypoxiaController.port);
             BufferedReader br = new BufferedReader(new InputStreamReader(controller.hypoxiaSocket.getInputStream()));
-            BufferedWriter output = new BufferedWriter(new OutputStreamWriter(controller.hypoxiaSocket.getOutputStream()));
+            BufferedWriter output = new BufferedWriter(new OutputStreamWriter(controller.hypoxiaSocket.getOutputStream()));*/
 
             Command command = new Launch(controller.getAge(), controller.isMan(),
                     controller.getWeight(), controller.getHeight(), controller.getActivityLevel(),
@@ -660,7 +664,7 @@ class CheckReadyThread extends Thread {
             System.err.println(command);
 
             boolean isReady = false;
-            while (!controller.isTesting && !isInterrupted() && !controller.isStageClosed){
+            while (!controller.isTesting && !isInterrupted() && !controller.isStageClosed) {
                 System.err.println("Checking ready...");
                 CheckStatus checkStatus = new CheckStatus();
 
@@ -714,8 +718,6 @@ class UpdateTimerThread extends Thread {
 
     public void run() {
         while (!isInterrupted() && !controller.isStageClosed) {
-            System.out.println("isInterrupted()"+isInterrupted());
-            System.out.println("interrupted()"+interrupted());
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
