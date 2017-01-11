@@ -189,7 +189,7 @@ public class HypoxiaController {
     }
 
     @FXML
-    private void startTest(ActionEvent actionEvent) {
+    private void startTest() {
         beforeTest();
 
         updateSeries = new Thread(() -> {
@@ -240,6 +240,7 @@ public class HypoxiaController {
                         }
 
                         if (++counterInspections % NUMBER_OF_SKIP == 0) {
+                            System.out.println("add");
                             seriesHR.getData().add(new XYChart.Data(counterPoints, pulse));
                             seriesSPO2.getData().add(new XYChart.Data(counterPoints++, spo2));
 
@@ -371,15 +372,21 @@ public class HypoxiaController {
                 if (data instanceof LastResearch) {
                     LastResearch lastResearch = (LastResearch) data;
                     System.err.println(lastResearch);
-                    afterTest();
+//                    afterTest();
                 }
 
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            /*finally {
-                closeSocketConnection();
-            }*/
+            finally {
+                System.err.println("Start test thread stopped!");
+                if(currentStage==0){
+                    afterTest();
+                    Platform.runLater( ()-> startTest());
+                    //startTest();
+                }
+                //closeSocketConnection();
+            }
 
         });
         updateSeries.start();
@@ -488,7 +495,8 @@ public class HypoxiaController {
     }
 
     void afterTest() {
-        if (currentStage != 4) badEndScreen.setVisible(true);
+        //if (currentStage != 4) badEndScreen.setVisible(true);
+        System.out.println(currentStage);
         if(updateTimerThread!=null) updateTimerThread.interrupt();
         isTesting = false;
         seconds = 0;
