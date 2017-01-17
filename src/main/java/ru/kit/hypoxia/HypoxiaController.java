@@ -219,7 +219,7 @@ public class HypoxiaController {
                 //while (line == null || data instanceof Inspections) {
                 int spo2 = 0, pulse = 0;
                 System.out.println(data.getClass());
-                while (data instanceof Inspections && !isStageClosed) {
+                while (data instanceof Inspections && !isStageClosed && isTesting) {
 
                     //System.err.println(line);
                     if (line != null) {
@@ -286,7 +286,7 @@ public class HypoxiaController {
 
                             if (currentStage == 2) {
                                 smallestSPO2 = (spo2 != 0 && spo2 < smallestSPO2) ? spo2 : smallestSPO2;
-                                if (seconds == secondTime || ((spo2 <= 90 || (spo2 <= (SPO2Rest - 7))) && spo2 != 0)) {
+                                if (seconds == secondTime || (spo2 <= 90  && spo2 != 0)){
                                     currentStage = 3;
                                     System.err.println("Наименьшее SPO2: " + smallestSPO2);
 
@@ -380,7 +380,7 @@ public class HypoxiaController {
             }
             finally {
                 System.err.println("Start test thread stopped!");
-                if(currentStage==0){
+                if(currentStage==0 && !isStageClosed){
                     afterTest();
                     Platform.runLater( ()-> startTest());
                     //startTest();
@@ -495,7 +495,7 @@ public class HypoxiaController {
     }
 
     void afterTest() {
-        //if (currentStage != 4) badEndScreen.setVisible(true);
+        if (currentStage != 4 && currentStage != 0) badEndScreen.setVisible(true);
         System.out.println(currentStage);
         if(updateTimerThread!=null) updateTimerThread.interrupt();
         isTesting = false;
