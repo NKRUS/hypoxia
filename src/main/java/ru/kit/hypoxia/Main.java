@@ -8,10 +8,11 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import ru.kit.SoundManagerSingleton;
 
 import java.io.IOException;
 
-public class Main extends Application{
+public class Main extends Application {
 
     public void start(Stage primaryStage) throws Exception {
 //        Stage stage = new Hypoxia(20, true, false, 170, 70, 4, 120, 80, "");
@@ -23,7 +24,7 @@ public class Main extends Application{
         btn.setOnAction(event -> {
             Stage s = null;
             try {
-                s = new Hypoxia(20, true, false, 170, 70, 4, 120, 80, "");
+                s = new Hypoxia(20, true, 170, 70, 4, 120, 80, true, "", SoundManagerSingleton.getInstance());
             } catch (IOException e) {
                 e.printStackTrace();
             }

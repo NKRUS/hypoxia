@@ -2,10 +2,15 @@ package ru.kit.hypoxia;
 
 
 import javafx.application.Platform;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
@@ -13,12 +18,15 @@ import javafx.scene.layout.GridPane;
 
 import javafx.scene.paint.Color;
 import org.json.JSONObject;
+import ru.kit.SoundManager;
+import ru.kit.SoundManagerSingleton;
 import ru.kit.hypoxia.commands.*;
 import ru.kit.hypoxia.control.LineChartWithMarker;
 import ru.kit.hypoxia.dto.Data;
 import ru.kit.hypoxia.dto.Inspections;
 import ru.kit.hypoxia.dto.LastResearch;
 import ru.kit.hypoxia.dto.ReadyStatus;
+import ru.kit.hypoxia.service.Sounds;
 
 import java.io.*;
 import java.net.Socket;
@@ -31,6 +39,7 @@ import static ru.kit.hypoxia.Util.serialize;
 
 public class HypoxiaController {
 
+    private boolean constraints;
     private int age;
     private boolean isMan;
     private int weight;
@@ -57,13 +66,13 @@ public class HypoxiaController {
     private static final int MAX_DATA_POINTS = 3000;//;7302 / 123 * secondsForTest / NUMBER_OF_SKIP;
     private static final int MAX_DATA_VALUES = 150;
 
-    private static int RECOVERY_TIME_TO_SHOW_ON_SCREEN = 0;
-
-
     private XYChart.Series<Number, Number> seriesHR;
     private XYChart.Series<Number, Number> seriesSPO2;
 
-    private Thread checkReadyThread, updateTimerThread, updateSeries, stopTest;
+    private Thread checkReadyThread, updateTimerThread, stopTest;
+    private SoundManager soundManager;
+
+    private static Service<Void> updateSeriesSevice;
 
     boolean isTesting = false;
 //    private ConcurrentLinkedQueue<Number> dataQHR = new ConcurrentLinkedQueue<>();
@@ -103,6 +112,10 @@ public class HypoxiaController {
     private AnchorPane badEndScreen;
 
     volatile boolean isStageClosed = false;
+
+    public HypoxiaController(SoundManager soundManager) {
+        this.soundManager=soundManager;
+    }
     //volatile Socket hypoxiaSocket = null;
 
 
@@ -144,6 +157,10 @@ public class HypoxiaController {
         disableAll();
         startChecking();
 
+        soundManager.disposeAllSounds();
+        soundManager.playSound(Sounds.HYP_MALE_TEST_STARTED, SoundManager.SoundType.VOICE);
+        soundManager.pushSoundToTrackQueueWithDelay(Sounds.HYP_FEMALE_HOLD_MASK_IN_HANDS, SoundManager.SoundType.VOICE, 5000);
+        soundManager.pushSoundToTrackQueueWithDelay(Sounds.HYP_FEMALE_ON_SIGNAL_PRESS_TO_FACE, SoundManager.SoundType.VOICE, 6000);
 
 //        XYChart.Data<Number, Number> verticalMarker = new XYChart.Data<>(50, 0);
 //        markers.push(verticalMarker);
@@ -168,16 +185,18 @@ public class HypoxiaController {
     //private Timer timer;
 
     void closeConnections() {
+        System.out.println("Closing sounds");
+        soundManager.disposeAllSounds();
         isStageClosed = true;
         closeSocketConnection();
+
     }
 
     private void closeSocketConnection() {
         System.out.println("Starting closing connections");
-
         if (checkReadyThread != null) checkReadyThread.interrupt();
         if (updateTimerThread != null) updateTimerThread.interrupt();
-        if (updateSeries != null) updateSeries.interrupt();
+        if (updateSeriesSevice != null) updateSeriesSevice.cancel();
         if (stopTest != null) stopTest.interrupt();
             /*if(!socket.isClosed()){
                 socket.shutdownInput();
@@ -191,40 +210,45 @@ public class HypoxiaController {
     @FXML
     private void startTest() {
         beforeTest();
-
-        updateSeries = new Thread(() -> {
-            try (Socket socket = new Socket("localhost", port);
-                 BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                 BufferedWriter output = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))) {
-                /*hypoxiaSocket = new Socket("localhost", port);
-                BufferedReader br = new BufferedReader(new InputStreamReader(hypoxiaSocket.getInputStream()));
-                BufferedWriter output = new BufferedWriter(new OutputStreamWriter(hypoxiaSocket.getOutputStream()));*/
-
-
-                StartTest startTest = new StartTest();
-                output.write(serialize(startTest));
-                output.newLine();
-                output.flush();
-
-                System.err.println("Test started");
-
-                String line = br.readLine();
-                Data data = null;
-                if (line != null) {
-                    data = deserializeData(line);
-                }
+        soundManager.pushSoundToTrackQueue(Sounds.HYP_MALE_TIME_TO_END_5_MINUTES, SoundManager.SoundType.VOICE);
+        updateSeriesSevice = new Service<Void>() {
+            @Override
+            protected Task<Void> createTask() {
+                return new Task<Void>() {
+                    @Override
+                    protected Void call() throws Exception {
+                        try (Socket socket = new Socket("localhost", port);
+                             BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                             BufferedWriter output = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))) {
+                            /*hypoxiaSocket = new Socket("localhost", port);
+                            BufferedReader br = new BufferedReader(new InputStreamReader(hypoxiaSocket.getInputStream()));
+                            BufferedWriter output = new BufferedWriter(new OutputStreamWriter(hypoxiaSocket.getOutputStream()));*/
 
 
-                int counterPoints = 0, counterInspections = 0;
-                //while (line == null || data instanceof Inspections) {
-                int spo2 = 0, pulse = 0;
-                System.out.println(data.getClass());
-                while (data instanceof Inspections && !isStageClosed && isTesting) {
+                            StartTest startTest = new StartTest();
+                            output.write(serialize(startTest));
+                            output.newLine();
+                            output.flush();
 
-                    //System.err.println(line);
-                    if (line != null) {
-                        Inspections inspections = (Inspections) data;
-                        System.err.println("pulse: " + inspections.getPulse() + " --- spo2: " + inspections.getSpo2());
+                            System.err.println("Test started");
+
+                            String line = br.readLine();
+                            Data data = null;
+                            if (line != null) {
+                                data = deserializeData(line);
+                            }
+
+
+                            int counterPoints = 0, counterInspections = 0;
+                            //while (line == null || data instanceof Inspections) {
+                            int spo2 = 0, pulse = 0;
+                            System.out.println(data.getClass());
+                            while (data instanceof Inspections && !isStageClosed && isTesting) {
+
+                                //System.err.println(line);
+                                if (line != null) {
+                                    Inspections inspections = (Inspections) data;
+                                    System.err.println("pulse: " + inspections.getPulse() + " --- spo2: " + inspections.getSpo2());
                         /*if ((inspections.getPulse() == 0) && (seconds - zeroSecondMoment < 9)) {
                             if (!zeroWasCatched) { //Ожидаем 15 сек перед тем как показать 0
                                 zeroWasCatched = true;
@@ -232,84 +256,87 @@ public class HypoxiaController {
                             }
 
                         } else*/
-                        {
-                            spo2 = inspections.getSpo2();
-                            pulse = inspections.getPulse();
+                                    {
+                                        spo2 = inspections.getSpo2();
+                                        pulse = inspections.getPulse();
                             /*zeroWasCatched = false;
                             zeroSecondMoment = seconds;*/
-                        }
+                                    }
 
-                        if (++counterInspections % NUMBER_OF_SKIP == 0) {
-                            System.out.println("add");
-                            seriesHR.getData().add(new XYChart.Data(counterPoints, pulse));
-                            seriesSPO2.getData().add(new XYChart.Data(counterPoints++, spo2));
+                                    if (++counterInspections % NUMBER_OF_SKIP == 0) {
+                                        seriesHR.getData().add(new XYChart.Data<Number, Number>(counterPoints, pulse));
+                                        seriesSPO2.getData().add(new XYChart.Data<Number, Number>(counterPoints++, spo2));
 
-                            double upperBound = ((NumberAxis) chart.getXAxis()).getUpperBound();
-                            if (counterPoints > 0.8 * upperBound) {
-                                ((NumberAxis) chart.getXAxis()).setUpperBound(upperBound * 1.33);
-                            }
-                            if (seconds == 1) {
-                                currentStage = 1;
-                            }
+                                        double upperBound = ((NumberAxis) chart.getXAxis()).getUpperBound();
+                                        if (counterPoints > 0.8 * upperBound) {
+                                            ((NumberAxis) chart.getXAxis()).setUpperBound(upperBound * 1.33);
+                                        }
+                                        if (seconds == 1) {
+                                            currentStage = 1;
+                                        }
 
-                            if (seconds <= firstTime) {
-                                if (spo2 > sumOfSPO2Rest) sumOfSPO2Rest = spo2;
+                                        if (seconds <= firstTime) {
+                                            if (spo2 > sumOfSPO2Rest) sumOfSPO2Rest = spo2;
                                 /*sumOfSPO2Rest += spo2;
                                 countOfSPO2Rest += 1;*/
-                            }
+                                        }
 
-                            if (currentStage == 1 && seconds == firstTime + 1) {
-                                currentStage = 2;
+                                        if (currentStage == 1 && seconds == firstTime + 1) {
+                                            currentStage = 2;
 
-                                final int xValue = counterPoints - 1;
-                                SPO2Rest = sumOfSPO2Rest; //sumOfSPO2Rest / countOfSPO2Rest;
-                                smallestSPO2 = SPO2Rest;
-                                Platform.runLater(() -> {
-                                    textSPO2Rest.setText("" + SPO2Rest);
+                                            final int xValue = counterPoints - 1;
+                                            SPO2Rest = sumOfSPO2Rest; //sumOfSPO2Rest / countOfSPO2Rest;
+                                            smallestSPO2 = SPO2Rest;
+                                            Platform.runLater(() -> {
+                                                textSPO2Rest.setText("" + SPO2Rest);
+                                                soundManager.playSound(Sounds.HYP_MALE_WEAR_ON_MASK, SoundManager.SoundType.VOICE);
+                                                XYChart.Data<Number, Number> verticalMarker = new XYChart.Data<>(xValue, 0);
+                                                markers.push(verticalMarker);
+                                                chart.addVerticalValueMarker(verticalMarker);
 
-                                    XYChart.Data<Number, Number> verticalMarker = new XYChart.Data<>(xValue, 0);
-                                    markers.push(verticalMarker);
-                                    chart.addVerticalValueMarker(verticalMarker);
-
-                                    if (SPO2Rest < 93) {
-                                        textSPO2soSmall.setVisible(true);
-                                    }
-                                });
-
-
-                                textNotification.setVisible(false);
-                                textMaskaOn.setVisible(true);
-                                textMaskaOff.setVisible(false);
+                                                if (SPO2Rest < 93) {
+                                                    textSPO2soSmall.setVisible(true);
+                                                }
+                                            });
 
 
-                            }
-
-                            if (currentStage == 2) {
-                                smallestSPO2 = (spo2 != 0 && spo2 < smallestSPO2) ? spo2 : smallestSPO2;
-                                if (seconds == secondTime || (spo2 <= 90  && spo2 != 0)){
-                                    currentStage = 3;
-                                    System.err.println("Наименьшее SPO2: " + smallestSPO2);
-
-                                    timeOfFall = seconds - firstTime;
-                                    System.err.println("Время падения: " + timeOfFall);
-                                    timeOfStartOfRecovery = seconds;
+                                            textNotification.setVisible(false);
+                                            textMaskaOn.setVisible(true);
+                                            textMaskaOff.setVisible(false);
 
 
-                                    final int xValue = counterPoints - 1;
-                                    Platform.runLater(() -> {
-                                        textFallTime.setText("" + timeOfFall);
+                                        }
+
+                                        if (currentStage == 2) {
+                                            if (seconds == 135 && smallestSPO2 >= SPO2Rest) {
+                                                Util.showAlert(Alert.AlertType.WARNING, null, null,
+                                                        "Проверьте плотность прилегания гипоксической маски и гермитичность дыхательной цепи!", false);
+                                            }
+                                            smallestSPO2 = (spo2 != 0 && spo2 < smallestSPO2) ? spo2 : smallestSPO2;
+                                            if (seconds == secondTime || (spo2 <= 90 && spo2 != 0)) {
+                                                currentStage = 3;
+                                                System.err.println("Наименьшее SPO2: " + smallestSPO2);
+
+                                                timeOfFall = seconds - firstTime;
+                                                System.err.println("Время падения: " + timeOfFall);
+                                                timeOfStartOfRecovery = seconds;
 
 
-                                        XYChart.Data<Number, Number> verticalMarker = new XYChart.Data<>(xValue, 0);
-                                        markers.push(verticalMarker);
-                                        chart.addVerticalValueMarker(verticalMarker);
-                                    });
+                                                final int xValue = counterPoints - 1;
+                                                Platform.runLater(() -> {
+                                                    textFallTime.setText("" + timeOfFall);
+                                                    soundManager.playSound(Sounds.HYP_MALE_TAKE_OFF, SoundManager.SoundType.VOICE);
+                                                    soundManager.pushSoundToTrackQueueWithDelay(Sounds.HYP_MALE_MEASURING_RECOVERY_PARAMETERS, SoundManager.SoundType.VOICE,5000);
+                                                    XYChart.Data<Number, Number> verticalMarker = new XYChart.Data<>(xValue, 0);
+                                                    markers.push(verticalMarker);
+                                                    chart.addVerticalValueMarker(verticalMarker);
+                                                });
 
-                                    textNotification.setVisible(false);
-                                    textMaskaOn.setVisible(false);
-                                    textMaskaOff.setVisible(true);
-                                }
-                            }
+                                                textNotification.setVisible(false);
+                                                textMaskaOn.setVisible(false);
+                                                textMaskaOff.setVisible(true);
+                                            }
+                                        }
 
 
 //                            if (currentStage == 3) {
@@ -317,79 +344,84 @@ public class HypoxiaController {
 //                                countOfSPO2Recovery += 1;
 //                            }
 
-                            if (currentStage == 3 && ((spo2 >= 95 || spo2 >= SPO2Rest) || seconds == secondTime)) {
-                                currentStage = 4;
-                                timeOfRecovery = seconds - timeOfStartOfRecovery;
-                                double hypIndex = getHypIValue(timeOfFall, timeOfRecovery);
+                                        if (currentStage == 3 && ((spo2 >= 95 || spo2 >= SPO2Rest) || seconds == secondTime)) {
+                                            currentStage = 4;
+                                            timeOfRecovery = seconds - timeOfStartOfRecovery;
+                                            double hypIndex = getHypIValue(timeOfFall, timeOfRecovery);
                                 /*if (seconds - timeOfStartOfRecovery != 0) {
                                     timeOfRecovery = seconds - timeOfStartOfRecovery;
                                 } else {
                                     timeOfRecovery = 20;
                                     RECOVERY_TIME_TO_SHOW_ON_SCREEN = timeOfRecovery;
                                 }*/
-                                System.err.println("Время восстановления: " + timeOfRecovery);
+                                            System.err.println("Время восстановления: " + timeOfRecovery);
 
-                                Platform.runLater(() -> {
-                                    if (timeOfRecovery != 0) {
-                                        textRecoveryTime.setText("" + timeOfRecovery);
-                                    } else {
-                                        textRecoveryTime.setText("---");
+                                            Platform.runLater(() -> {
+                                                if (timeOfRecovery != 0) {
+                                                    textRecoveryTime.setText("" + timeOfRecovery);
+                                                } else {
+                                                    textRecoveryTime.setText("---");
+                                                }
+                                                soundManager.playSound(Sounds.HYP_MALE_RECOVERY_COMPLETED, SoundManager.SoundType.VOICE);
+                                                textHypI.setText(String.valueOf(hypIndex));
+                                                ok_button.setDisable(false);
+                                            });
+                                            afterTest();
+                                            closeSocketConnection();
+                                            //stopTest();
+
+                                        }
+
+                                        int finalPulse = pulse;
+                                        int finalSpo = spo2;
+                                        Platform.runLater(() -> {
+                                            textHR.setText("" + finalPulse);
+                                            textSPO2.setText("" + finalSpo);
+                                        });
+
                                     }
 
-                                    textHypI.setText(String.valueOf(hypIndex));
-                                    ok_button.setDisable(false);
-                                });
-                                afterTest();
-                                closeSocketConnection();
-                                //stopTest();
+                                    try {
+                                        Thread.sleep(10);
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
 
+
+                                line = br.readLine();
+                                if (line != null) {
+                                    data = deserializeData(line);
+                                }
                             }
 
-                            int finalPulse = pulse;
-                            int finalSpo = spo2;
-                            Platform.runLater(() -> {
-                                textHR.setText("" + finalPulse);
-                                textSPO2.setText("" + finalSpo);
-                            });
 
-                        }
+                            if (data instanceof LastResearch) {
+                                LastResearch lastResearch = (LastResearch) data;
+                                System.err.println(lastResearch);
+                                afterTest();
+                            }
 
-                        try {
-                            Thread.sleep(10);
-                        } catch (InterruptedException e) {
+                        } catch (IOException e) {
                             e.printStackTrace();
+                        } finally {
+                            System.err.println("Start test thread stopped!");
+
                         }
+                        return null;
                     }
-
-
-                    line = br.readLine();
-                    if (line != null) {
-                        data = deserializeData(line);
-                    }
-                }
-
-
-                if (data instanceof LastResearch) {
-                    LastResearch lastResearch = (LastResearch) data;
-                    System.err.println(lastResearch);
-//                    afterTest();
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
+                };
             }
-            finally {
-                System.err.println("Start test thread stopped!");
-                if(currentStage==0 && !isStageClosed){
-                    afterTest();
-                    Platform.runLater( ()-> startTest());
-                    //startTest();
-                }
-                //closeSocketConnection();
+        };
+        updateSeriesSevice.start();
+        updateSeriesSevice.setOnSucceeded(event -> {
+            if (currentStage == 0 && !isStageClosed) {
+                afterTest();
+                beforeTest();
+                updateSeriesSevice.reset();
+                updateSeriesSevice.start();
             }
-
         });
-        updateSeries.start();
     }
 
     private double getHypIValue(int timeOfFall, int timeOfRecovery) {
@@ -497,7 +529,7 @@ public class HypoxiaController {
     void afterTest() {
         if (currentStage != 4 && currentStage != 0) badEndScreen.setVisible(true);
         System.out.println(currentStage);
-        if(updateTimerThread!=null) updateTimerThread.interrupt();
+        if (updateTimerThread != null) updateTimerThread.interrupt();
         isTesting = false;
         seconds = 0;
         System.err.println("After test");
@@ -595,6 +627,16 @@ public class HypoxiaController {
 
     public void setActivityLevel(int activityLevel) {
         this.activityLevel = activityLevel;
+    }
+
+    public boolean isConstraints() {
+        return constraints;
+    }
+
+    public void setConstraints(boolean constraints) {
+        this.constraints = constraints;
+        if (isConstraints())
+            Util.showAlert(Alert.AlertType.WARNING, "Внимание!", null, "Прохождение гипоксического теста не рекомендовано!", true);
     }
 
     private JSONObject createJSON() {

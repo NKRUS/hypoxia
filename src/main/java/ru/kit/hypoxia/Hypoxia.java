@@ -4,8 +4,10 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import ru.kit.SoundManager;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,18 +16,15 @@ import java.io.InputStreamReader;
 public class Hypoxia extends Stage {
     private static final int windowWidth = 950;
     private static final int windowHeight = 550;
-    private HypoxiaController controller;
     private static final String SERVICE_NAME = "OxiService";
 
 
-    public Hypoxia(int age, boolean isMale, boolean isFemale, int height, int width, int activityLevel, int systBP, int diastBP, String path) throws IOException {
-
-        //execService("stop");
-
-        //execService("start");
+    public Hypoxia(int age, boolean isMale, int height, int width, int activityLevel, int systBP, int diastBP, boolean constraints, String path, SoundManager soundManager) throws IOException {
 
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/ru/kit/hypoxia/fxml/hypoxia.fxml"));
+        HypoxiaController hypoxiaController = new HypoxiaController(soundManager);
+        loader.setController(hypoxiaController);
         Parent root = loader.load();
 
         HypoxiaController controller = loader.getController();
@@ -38,13 +37,14 @@ public class Hypoxia extends Stage {
         controller.setSystBP(systBP);
         controller.setDiastBP(diastBP);
         controller.setPath(path);
+        controller.setConstraints(constraints);
 
         controller.setStage(this);
 
         this.setOnCloseRequest(event -> {
             try {
                 controller.closeConnections();
-            }finally {
+            } finally {
                 this.close();
             }
         });
@@ -54,35 +54,13 @@ public class Hypoxia extends Stage {
         this.setMinHeight(windowHeight);
 
 
+
     }
 
     @Override
     public void close() {
         super.close();
         //controller.afterTest();
-    }
-
-    public static void execService(String command){
-
-
-        try {
-            Process p = null;
-            p = Runtime.getRuntime().exec("net " + command + " " + SERVICE_NAME);
-
-
-            p.waitFor();
-
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            String line = reader.readLine();
-            while (line != null) {
-                System.err.println(line);
-                line = reader.readLine();
-            }
-
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
 

@@ -5,11 +5,13 @@ public class Inspections extends Data{
     private int wave;
     private int spo2;
     private int pulse;
+    private int signal;
 
-    public Inspections(int wave, int spo2, int pulse) {
+    public Inspections(int wave, int spo2, int pulse, int signal) {
         this.wave = wave;
         this.spo2 = spo2;
         this.pulse = pulse;
+        this.signal = signal;
     }
 
     public Inspections(){}
@@ -26,8 +28,12 @@ public class Inspections extends Data{
         return wave;
     }
 
+    public int getSignal() {
+        return signal;
+    }
+
     @Override
     public String toString() {
-        return "wave: " + wave + ", spo2: " + spo2 + ", pulse: " + pulse;
+        return "wave: " + wave + ", spo2: " + spo2 + ", pulse: " + pulse + ", signal: " + signal;
     }
 }
