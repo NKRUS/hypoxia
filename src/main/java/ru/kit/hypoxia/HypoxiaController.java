@@ -160,7 +160,6 @@ public class HypoxiaController {
         soundManager.disposeAllSounds();
         soundManager.playSound(Sounds.HYP_MALE_TEST_STARTED, SoundManager.SoundType.VOICE);
         soundManager.pushSoundToTrackQueueWithDelay(Sounds.HYP_FEMALE_HOLD_MASK_IN_HANDS, SoundManager.SoundType.VOICE, 5000);
-        soundManager.pushSoundToTrackQueueWithDelay(Sounds.HYP_FEMALE_ON_SIGNAL_PRESS_TO_FACE, SoundManager.SoundType.VOICE, 6000);
 
 //        XYChart.Data<Number, Number> verticalMarker = new XYChart.Data<>(50, 0);
 //        markers.push(verticalMarker);
@@ -326,7 +325,7 @@ public class HypoxiaController {
                                                 Platform.runLater(() -> {
                                                     textFallTime.setText("" + timeOfFall);
                                                     soundManager.playSound(Sounds.HYP_MALE_TAKE_OFF, SoundManager.SoundType.VOICE);
-                                                    soundManager.pushSoundToTrackQueueWithDelay(Sounds.HYP_MALE_MEASURING_RECOVERY_PARAMETERS, SoundManager.SoundType.VOICE,5000);
+                                                    soundManager.pushSoundToTrackQueue(Sounds.HYP_MALE_MEASURING_RECOVERY_PARAMETERS, SoundManager.SoundType.VOICE);
                                                     XYChart.Data<Number, Number> verticalMarker = new XYChart.Data<>(xValue, 0);
                                                     markers.push(verticalMarker);
                                                     chart.addVerticalValueMarker(verticalMarker);
@@ -362,7 +361,7 @@ public class HypoxiaController {
                                                 } else {
                                                     textRecoveryTime.setText("---");
                                                 }
-                                                soundManager.playSound(Sounds.HYP_MALE_RECOVERY_COMPLETED, SoundManager.SoundType.VOICE);
+                                                soundManager.pushSoundToTrackQueue(Sounds.HYP_MALE_RECOVERY_COMPLETED, SoundManager.SoundType.VOICE);
                                                 textHypI.setText(String.valueOf(hypIndex));
                                                 ok_button.setDisable(false);
                                             });
