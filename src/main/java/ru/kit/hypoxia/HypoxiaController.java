@@ -70,28 +70,12 @@ public class HypoxiaController {
     private XYChart.Series<Number, Number> seriesSPO2;
 
     private Thread checkReadyThread, updateTimerThread, stopTest;
-    private SoundManager soundManager;
 
     private static Service<Void> updateSeriesSevice;
 
     boolean isTesting = false;
-//    private ConcurrentLinkedQueue<Number> dataQHR = new ConcurrentLinkedQueue<>();
-//    private ConcurrentLinkedQueue<Number> dataQSPO2 = new ConcurrentLinkedQueue<>();
 
-
-//    private void setDataSPO2(Queue<Integer> dataSPO2) {
-//        this.dataSPO2 = dataSPO2;
-//    }
-//
-//    private void setDataHR(Queue<Integer> dataHR) {
-//        this.dataHR = dataHR;
-//    }
-
-    private int sumOfSPO2Rest, SPO2Rest, smallestSPO2;
-
-    private int zeroSecondMoment = 0; //Момент появления нулевого пакета, на какой секунде, костыль-костыльный
-    private boolean zeroWasCatched = false;
-
+    private int SPO2Rest, smallestSPO2;
 
     @FXML
     GridPane forChart;
@@ -113,10 +97,7 @@ public class HypoxiaController {
 
     volatile boolean isStageClosed = false;
 
-    public HypoxiaController(SoundManager soundManager) {
-        this.soundManager=soundManager;
-    }
-    //volatile Socket hypoxiaSocket = null;
+
 
 
     @FXML
@@ -157,13 +138,10 @@ public class HypoxiaController {
         disableAll();
         startChecking();
 
-        soundManager.disposeAllSounds();
-        soundManager.playSound(Sounds.HYP_MALE_TEST_STARTED, SoundManager.SoundType.VOICE);
-        soundManager.pushSoundToTrackQueueWithDelay(Sounds.HYP_FEMALE_HOLD_MASK_IN_HANDS, SoundManager.SoundType.VOICE, 5000);
+        Hypoxia.soundManager.disposeAllSounds();
+        Hypoxia.soundManager.playSound(Sounds.HYP_MALE_TEST_STARTED, SoundManager.SoundType.VOICE);
+        Hypoxia.soundManager.pushSoundToTrackQueueWithDelay(Sounds.HYP_FEMALE_HOLD_MASK_IN_HANDS, SoundManager.SoundType.VOICE, 5000);
 
-//        XYChart.Data<Number, Number> verticalMarker = new XYChart.Data<>(50, 0);
-//        markers.push(verticalMarker);
-//        chart.addVerticalValueMarker(verticalMarker);
     }
 
     private void prepareChart() {
@@ -185,7 +163,7 @@ public class HypoxiaController {
 
     void closeConnections() {
         System.out.println("Closing sounds");
-        soundManager.disposeAllSounds();
+        Hypoxia.soundManager.disposeAllSounds();
         isStageClosed = true;
         closeSocketConnection();
 
@@ -197,19 +175,13 @@ public class HypoxiaController {
         if (updateTimerThread != null) updateTimerThread.interrupt();
         if (updateSeriesSevice != null) updateSeriesSevice.cancel();
         if (stopTest != null) stopTest.interrupt();
-            /*if(!socket.isClosed()){
-                socket.shutdownInput();
-                socket.shutdownOutput();
-                socket.close();
-                System.out.println(socket.isClosed()?"Socket closed":"Socket not closed!");
-            }*/
 
     }
 
     @FXML
     private void startTest() {
         beforeTest();
-        soundManager.pushSoundToTrackQueue(Sounds.HYP_MALE_TIME_TO_END_5_MINUTES, SoundManager.SoundType.VOICE);
+        Hypoxia.soundManager.pushSoundToTrackQueue(Sounds.HYP_MALE_TIME_TO_END_5_MINUTES, SoundManager.SoundType.VOICE);
         updateSeriesSevice = new Service<Void>() {
             @Override
             protected Task<Void> createTask() {
@@ -219,48 +191,35 @@ public class HypoxiaController {
                         try (Socket socket = new Socket("localhost", port);
                              BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                              BufferedWriter output = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))) {
-                            /*hypoxiaSocket = new Socket("localhost", port);
-                            BufferedReader br = new BufferedReader(new InputStreamReader(hypoxiaSocket.getInputStream()));
-                            BufferedWriter output = new BufferedWriter(new OutputStreamWriter(hypoxiaSocket.getOutputStream()));*/
 
-
-                            StartTest startTest = new StartTest();
+                            Command startTest = new StartTest();
                             output.write(serialize(startTest));
                             output.newLine();
                             output.flush();
 
                             System.err.println("Test started");
 
-                            String line = br.readLine();
-                            Data data = null;
-                            if (line != null) {
-                                data = deserializeData(line);
-                            }
+                            int counterPoints = 0, counterInspections = 0, spo2, pulse;
+                            String line;
 
+                            while (!isStageClosed && isTesting) {
+                                line = br.readLine();
+                                if (line == null) break;
+                                Data data = deserializeData(line);
 
-                            int counterPoints = 0, counterInspections = 0;
-                            //while (line == null || data instanceof Inspections) {
-                            int spo2 = 0, pulse = 0;
-                            System.out.println(data.getClass());
-                            while (data instanceof Inspections && !isStageClosed && isTesting) {
-
-                                //System.err.println(line);
-                                if (line != null) {
+                                if (data instanceof Inspections) {
                                     Inspections inspections = (Inspections) data;
-                                    System.err.println("pulse: " + inspections.getPulse() + " --- spo2: " + inspections.getSpo2());
-                        /*if ((inspections.getPulse() == 0) && (seconds - zeroSecondMoment < 9)) {
-                            if (!zeroWasCatched) { //Ожидаем 15 сек перед тем как показать 0
-                                zeroWasCatched = true;
-                                zeroSecondMoment = seconds;
-                            }
 
-                        } else*/
-                                    {
-                                        spo2 = inspections.getSpo2();
-                                        pulse = inspections.getPulse();
-                            /*zeroWasCatched = false;
-                            zeroSecondMoment = seconds;*/
-                                    }
+                                    spo2 = inspections.getSpo2();
+                                    pulse = inspections.getPulse();
+                                    System.err.println("pulse: " + pulse + " --- spo2: " + spo2);
+
+                                    final int spo2Temp = spo2;
+                                    final int pulseTemp = pulse;
+                                    Platform.runLater(() -> {
+                                        textHR.setText("" + pulseTemp);
+                                        textSPO2.setText("" + spo2Temp);
+                                    });
 
                                     if (++counterInspections % NUMBER_OF_SKIP == 0) {
                                         seriesHR.getData().add(new XYChart.Data<Number, Number>(counterPoints, pulse));
@@ -275,20 +234,17 @@ public class HypoxiaController {
                                         }
 
                                         if (seconds <= firstTime) {
-                                            if (spo2 > sumOfSPO2Rest) sumOfSPO2Rest = spo2;
-                                /*sumOfSPO2Rest += spo2;
-                                countOfSPO2Rest += 1;*/
+                                            if (spo2 > SPO2Rest) SPO2Rest = spo2;
                                         }
 
-                                        if (currentStage == 1 && seconds == firstTime + 1) {
+                                        if (seconds == firstTime + 1 && currentStage == 1) {
                                             currentStage = 2;
 
                                             final int xValue = counterPoints - 1;
-                                            SPO2Rest = sumOfSPO2Rest; //sumOfSPO2Rest / countOfSPO2Rest;
                                             smallestSPO2 = SPO2Rest;
                                             Platform.runLater(() -> {
                                                 textSPO2Rest.setText("" + SPO2Rest);
-                                                soundManager.playSound(Sounds.HYP_MALE_WEAR_ON_MASK, SoundManager.SoundType.VOICE);
+                                                Hypoxia.soundManager.playSound(Sounds.HYP_MALE_WEAR_ON_MASK, SoundManager.SoundType.VOICE);
                                                 XYChart.Data<Number, Number> verticalMarker = new XYChart.Data<>(xValue, 0);
                                                 markers.push(verticalMarker);
                                                 chart.addVerticalValueMarker(verticalMarker);
@@ -297,13 +253,9 @@ public class HypoxiaController {
                                                     textSPO2soSmall.setVisible(true);
                                                 }
                                             });
-
-
                                             textNotification.setVisible(false);
                                             textMaskaOn.setVisible(true);
                                             textMaskaOff.setVisible(false);
-
-
                                         }
 
                                         if (currentStage == 2) {
@@ -312,7 +264,7 @@ public class HypoxiaController {
                                                         "Проверьте плотность прилегания гипоксической маски и гермитичность дыхательной цепи!", false);
                                             }
                                             smallestSPO2 = (spo2 != 0 && spo2 < smallestSPO2) ? spo2 : smallestSPO2;
-                                            if (seconds == secondTime || (spo2 <= 90 && spo2 != 0)) {
+                                            if (seconds >= secondTime || (spo2 != 0 && (spo2 <= 90 || spo2<=SPO2Rest-7))) {
                                                 currentStage = 3;
                                                 System.err.println("Наименьшее SPO2: " + smallestSPO2);
 
@@ -320,12 +272,11 @@ public class HypoxiaController {
                                                 System.err.println("Время падения: " + timeOfFall);
                                                 timeOfStartOfRecovery = seconds;
 
-
                                                 final int xValue = counterPoints - 1;
                                                 Platform.runLater(() -> {
                                                     textFallTime.setText("" + timeOfFall);
-                                                    soundManager.playSound(Sounds.HYP_MALE_TAKE_OFF, SoundManager.SoundType.VOICE);
-                                                    soundManager.pushSoundToTrackQueue(Sounds.HYP_MALE_MEASURING_RECOVERY_PARAMETERS, SoundManager.SoundType.VOICE);
+                                                    Hypoxia.soundManager.playSound(Sounds.HYP_MALE_TAKE_OFF, SoundManager.SoundType.VOICE);
+                                                    Hypoxia.soundManager.pushSoundToTrackQueue(Sounds.HYP_MALE_MEASURING_RECOVERY_PARAMETERS, SoundManager.SoundType.VOICE);
                                                     XYChart.Data<Number, Number> verticalMarker = new XYChart.Data<>(xValue, 0);
                                                     markers.push(verticalMarker);
                                                     chart.addVerticalValueMarker(verticalMarker);
@@ -337,22 +288,11 @@ public class HypoxiaController {
                                             }
                                         }
 
-
-//                            if (currentStage == 3) {
-//                                sumOfSPO2Recovery += inspections.getSpo2();
-//                                countOfSPO2Recovery += 1;
-//                            }
-
-                                        if (currentStage == 3 && ((spo2 >= 95 || spo2 >= SPO2Rest) || seconds == secondTime)) {
+                                        if (currentStage == 3 && ((spo2 >= 95 || spo2 >= SPO2Rest) || (timeOfStartOfRecovery<secondTime && seconds >= secondTime))) {
                                             currentStage = 4;
                                             timeOfRecovery = seconds - timeOfStartOfRecovery;
                                             double hypIndex = getHypIValue(timeOfFall, timeOfRecovery);
-                                /*if (seconds - timeOfStartOfRecovery != 0) {
-                                    timeOfRecovery = seconds - timeOfStartOfRecovery;
-                                } else {
-                                    timeOfRecovery = 20;
-                                    RECOVERY_TIME_TO_SHOW_ON_SCREEN = timeOfRecovery;
-                                }*/
+
                                             System.err.println("Время восстановления: " + timeOfRecovery);
 
                                             Platform.runLater(() -> {
@@ -361,23 +301,12 @@ public class HypoxiaController {
                                                 } else {
                                                     textRecoveryTime.setText("---");
                                                 }
-                                                soundManager.pushSoundToTrackQueue(Sounds.HYP_MALE_RECOVERY_COMPLETED, SoundManager.SoundType.VOICE);
+                                                Hypoxia.soundManager.pushSoundToTrackQueue(Sounds.HYP_MALE_RECOVERY_COMPLETED, SoundManager.SoundType.VOICE);
                                                 textHypI.setText(String.valueOf(hypIndex));
                                                 ok_button.setDisable(false);
                                             });
-                                            afterTest();
-                                            closeSocketConnection();
-                                            //stopTest();
-
+                                            isTesting = false;
                                         }
-
-                                        int finalPulse = pulse;
-                                        int finalSpo = spo2;
-                                        Platform.runLater(() -> {
-                                            textHR.setText("" + finalPulse);
-                                            textSPO2.setText("" + finalSpo);
-                                        });
-
                                     }
 
                                     try {
@@ -385,27 +314,17 @@ public class HypoxiaController {
                                     } catch (InterruptedException e) {
                                         e.printStackTrace();
                                     }
+                                }else {
+                                    System.out.println("Not inspection consumed. isTesting - false");
+                                    isTesting = false;
                                 }
-
-
-                                line = br.readLine();
-                                if (line != null) {
-                                    data = deserializeData(line);
-                                }
-                            }
-
-
-                            if (data instanceof LastResearch) {
-                                LastResearch lastResearch = (LastResearch) data;
-                                System.err.println(lastResearch);
-                                afterTest();
                             }
 
                         } catch (IOException e) {
                             e.printStackTrace();
                         } finally {
                             System.err.println("Start test thread stopped!");
-
+                            afterTest();
                         }
                         return null;
                     }
@@ -414,6 +333,7 @@ public class HypoxiaController {
         };
         updateSeriesSevice.start();
         updateSeriesSevice.setOnSucceeded(event -> {
+            System.out.println("Try reset Test");
             if (currentStage == 0 && !isStageClosed) {
                 afterTest();
                 beforeTest();
@@ -430,49 +350,24 @@ public class HypoxiaController {
         //Логика
         System.out.println("SPO2Rest = " + SPO2Rest);
         System.out.println("smallestSPO2 = " + smallestSPO2);
-        int difference = SPO2Rest - smallestSPO2;
-        if (timeOfRecovery > 0 || difference >= 7) {
+        int differenceSPO2 = SPO2Rest - smallestSPO2;
+        if (timeOfRecovery > 0 || differenceSPO2 >= 7) {
             double hypIndex = timeOfFall * 1.0 / timeOfRecovery;
             if (hypIndex > 9) return 9;
             if (hypIndex < 1) return 1;
             return Math.round(hypIndex);
         } else if (timeOfRecovery == 0) {
-            if (difference < 1) return 9;
-            else if (difference == 1) return 8;
-            else if (difference == 2) return 7;
-            else if (difference == 3) return 6;
-            else if (difference == 4) return 5;
-            else if (difference == 5) return 4;
-            else if (difference == 6) return 3;
+            if (differenceSPO2 < 1) return 9;
+            else if (differenceSPO2 == 1) return 8;
+            else if (differenceSPO2 == 2) return 7;
+            else if (differenceSPO2 == 3) return 6;
+            else if (differenceSPO2 == 4) return 5;
+            else if (differenceSPO2 == 5) return 4;
+            else if (differenceSPO2 == 6) return 3;
         }
         //С логикой не очень
         throw new IllegalArgumentException("Can't calculate HypI Value");
     }
-
-    /*private void stopTest() {
-        stopTest = new Thread(() -> {
-            try {
-                hypoxiaSocket = new Socket("localhost", port);
-                BufferedWriter output = new BufferedWriter(new OutputStreamWriter(hypoxiaSocket.getOutputStream()));
-
-                StopTest stopTestCommand = new StopTest();
-                output.write(serialize(stopTestCommand));
-                output.newLine();
-                output.flush();
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    hypoxiaSocket.close();
-                } catch (IOException e) {
-                    System.err.println("Cannot close socket connections!");
-                }
-            }
-        });
-
-        stopTest.start();
-    }*/
 
     @FXML
     private void cancel(ActionEvent actionEvent) {
@@ -510,7 +405,7 @@ public class HypoxiaController {
 
         prepareChart();
 
-        sumOfSPO2Rest = 0;
+        SPO2Rest = 0;
 
         ok_button.setDisable(true);
         while (!markers.isEmpty()) {
@@ -518,7 +413,6 @@ public class HypoxiaController {
         }
 
 
-        //textHR.setText("---");
         textSPO2Rest.setText("---");
         textFallTime.setText("---");
         textRecoveryTime.setText("---");
@@ -527,7 +421,6 @@ public class HypoxiaController {
 
     void afterTest() {
         if (currentStage != 4 && currentStage != 0) badEndScreen.setVisible(true);
-        System.out.println(currentStage);
         if (updateTimerThread != null) updateTimerThread.interrupt();
         isTesting = false;
         seconds = 0;
@@ -541,7 +434,6 @@ public class HypoxiaController {
         seconds++;
         Platform.runLater(() -> {
             int sec = seconds % 60;
-            //System.err.println(seconds);
             textTimer.setText("0" + (seconds / 60) + ":" + ((sec < 10) ? "0" + sec : "" + sec));
         });
 
@@ -699,10 +591,7 @@ class CheckReadyThread extends Thread {
     public void run() {
         try (Socket socket = new Socket("localhost", HypoxiaController.port);
              BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-             BufferedWriter output = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));) {
-           /* controller.hypoxiaSocket = new Socket("localhost", HypoxiaController.port);
-            BufferedReader br = new BufferedReader(new InputStreamReader(controller.hypoxiaSocket.getInputStream()));
-            BufferedWriter output = new BufferedWriter(new OutputStreamWriter(controller.hypoxiaSocket.getOutputStream()));*/
+             BufferedWriter output = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))) {
 
             Command command = new Launch(controller.getAge(), controller.isMan(),
                     controller.getWeight(), controller.getHeight(), controller.getActivityLevel(),
@@ -713,7 +602,8 @@ class CheckReadyThread extends Thread {
             System.err.println(command);
 
             boolean isReady = false;
-            while (!controller.isTesting && !isInterrupted() && !controller.isStageClosed) {
+            String data;
+            do {
                 System.err.println("Checking ready...");
                 CheckStatus checkStatus = new CheckStatus();
 
@@ -721,38 +611,43 @@ class CheckReadyThread extends Thread {
                 output.newLine();
                 output.flush();
 
+                data = br.readLine();
+                if (data!=null) {
+                    ReadyStatus readyStatus = (ReadyStatus) deserializeData(data);
+                    isReady = readyStatus.isPulse();
 
-                ReadyStatus readyStatus = (ReadyStatus) deserializeData(br.readLine());
-                isReady = readyStatus.isPulse();
-                //System.err.println("Status ready: " + readyStatus.isPulse());
+                    if (isReady) {
+                        System.err.println("Ready - OK!");
+                        controller.enableAll();
+                        data = br.readLine();
+                        if (data!=null) {
+                            Inspections inspections = (Inspections) deserializeData(data);
+                            Platform.runLater(() -> {
+                                controller.textHR.setText("" + inspections.getPulse());
+                                controller.textSPO2.setText("" + inspections.getSpo2());
+                            });
+                        }
 
-                if (isReady) {
-                    System.err.println("Ready - OK!");
-                    controller.enableAll();
-                    Inspections inspections = (Inspections) deserializeData(br.readLine());
-                    Platform.runLater(() -> {
-                        controller.textHR.setText("" + inspections.getPulse());
-                        controller.textSPO2.setText("" + inspections.getSpo2());
-                    });
+                    } else {
+                        System.err.println("Ready - Not Ready!");
+                        controller.disableAll();
+                        Platform.runLater(() -> {
+                            controller.textHR.setText("0");
+                            controller.textSPO2.setText("0");
+                        });
+                    }
 
-                } else {
-                    System.err.println("Ready - Not Ready!");
-                    controller.disableAll();
-                    Platform.runLater(() -> {
-                        controller.textHR.setText("0");
-                        controller.textSPO2.setText("0");
-                    });
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        System.err.println("Interrupt checking ready");
+                    }
                 }
-
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    System.err.println("Interrupt checking ready");
-                }
-            }
+            }while (!controller.isTesting && !isInterrupted() && !controller.isStageClosed);
         } catch (IOException e) {
             e.printStackTrace();
         }
+
     }
 
 

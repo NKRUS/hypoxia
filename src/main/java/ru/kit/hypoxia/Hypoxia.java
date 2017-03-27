@@ -17,14 +17,13 @@ public class Hypoxia extends Stage {
     private static final int windowWidth = 950;
     private static final int windowHeight = 550;
     private static final String SERVICE_NAME = "OxiService";
+    public static SoundManager soundManager;
 
 
     public Hypoxia(int age, boolean isMale, int height, int width, int activityLevel, int systBP, int diastBP, boolean constraints, String path, SoundManager soundManager) throws IOException {
 
-
+        Hypoxia.soundManager = soundManager;
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/ru/kit/hypoxia/fxml/hypoxia.fxml"));
-        HypoxiaController hypoxiaController = new HypoxiaController(soundManager);
-        loader.setController(hypoxiaController);
         Parent root = loader.load();
 
         HypoxiaController controller = loader.getController();
