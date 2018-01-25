@@ -85,7 +85,7 @@ public class HypoxiaController {
 
 
     @FXML
-    Label textSPO2, textHR, textNotification, textMaskaOff,
+    Label textSPO2, textHR, textSignal, textNotification, textMaskaOff,
             textMaskaOn, textTimer, textRecoveryTime, textFallTime, textHypI, textSPO2Rest, textSPO2soSmall;
 
     @FXML
@@ -199,7 +199,7 @@ public class HypoxiaController {
 
                             System.err.println("Test started");
 
-                            int counterPoints = 0, counterInspections = 0, spo2, pulse;
+                            int counterPoints = 0, counterInspections = 0, spo2, pulse, signal;
                             String line;
 
                             while (!isStageClosed && isTesting) {
@@ -212,18 +212,21 @@ public class HypoxiaController {
 
                                     spo2 = inspections.getSpo2();
                                     pulse = inspections.getPulse();
+                                    signal = inspections.getSignal();
                                     System.err.println("pulse: " + pulse + " --- spo2: " + spo2);
 
                                     final int spo2Temp = spo2;
                                     final int pulseTemp = pulse;
+                                    final int signalTemp = signal;
                                     Platform.runLater(() -> {
                                         textHR.setText("" + pulseTemp);
                                         textSPO2.setText("" + spo2Temp);
+                                        textSignal.setText("" + signalTemp);
                                     });
 
                                     if (++counterInspections % NUMBER_OF_SKIP == 0) {
-                                        seriesHR.getData().add(new XYChart.Data<Number, Number>(counterPoints, pulse));
-                                        seriesSPO2.getData().add(new XYChart.Data<Number, Number>(counterPoints++, spo2));
+                                        seriesHR.getData().add(new XYChart.Data<>(counterPoints, pulse));
+                                        seriesSPO2.getData().add(new XYChart.Data<>(counterPoints++, spo2));
 
                                         double upperBound = ((NumberAxis) chart.getXAxis()).getUpperBound();
                                         if (counterPoints > 0.8 * upperBound) {
@@ -625,6 +628,7 @@ class CheckReadyThread extends Thread {
                             Platform.runLater(() -> {
                                 controller.textHR.setText("" + inspections.getPulse());
                                 controller.textSPO2.setText("" + inspections.getSpo2());
+                                controller.textSignal.setText("" + inspections.getSignal());
                             });
                         }
 
@@ -634,6 +638,7 @@ class CheckReadyThread extends Thread {
                         Platform.runLater(() -> {
                             controller.textHR.setText("0");
                             controller.textSPO2.setText("0");
+                            controller.textSignal.setText("0");
                         });
                     }
 

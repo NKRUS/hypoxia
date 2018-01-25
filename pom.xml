@@ -7,6 +7,18 @@
     <groupId>ru.kit</groupId>
     <artifactId>hypoxia</artifactId>
     <version>20170222</version>
+
+    <repositories>
+        <repository>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <id>scanme_snapshots</id>
+            <name>libs-release-local</name>
+            <url>http://37.230.154.233:8081/artifactory/libs-release-local/</url>
+        </repository>
+    </repositories>
+
     <build>
         <plugins>
             <plugin>
